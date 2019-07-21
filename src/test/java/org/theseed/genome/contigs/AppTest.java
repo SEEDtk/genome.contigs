@@ -8,6 +8,8 @@ import junit.framework.TestSuite;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 import org.theseed.genomes.Contig;
 import org.theseed.sequence.Sequence;
@@ -74,5 +76,16 @@ public class AppTest
         for (int i = 0; i < ContigSensor.getSensorWidth(); i++) {
             assertThat("Sensor mismatch at " + i, sensorArray[i], equalTo(sensorList.get(i)));
         }
+        // Test plus-only mode.
+        ContigSensor.setPlusOnly(true);
+        assertThat("Plus-only did not adjust width.", ContigSensor.getSensorWidth(), equalTo(5));
+        ByteArrayOutputStream testStream = new ByteArrayOutputStream();
+        PrintStream testPrinter = new PrintStream(testStream);
+        ContigSensor.sensor_headers(testPrinter);
+        assertThat("Wrong half-header", testStream.toString(), equalTo("\tpos.00\tpos.01\tpos.02\tpos.03\tpos.04"));
+        sensor1 = new ContigSensor("ABC", 2, "ACGTTAGGTT");
+        assertThat("Wrong half-sensors", sensor1.getSensorList(),
+                contains(-0.3, 0.3, 0.6, 0.6, -0.6));
+        assertThat("Wrong string", sensor1.toString(), equalTo("-0.3\t0.3\t0.6\t0.6\t-0.6"));
     }
 }

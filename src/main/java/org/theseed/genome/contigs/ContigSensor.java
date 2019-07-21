@@ -3,16 +3,19 @@
  */
 package org.theseed.genome.contigs;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
+import java.util.stream.Collectors;
 import org.theseed.genomes.Contig;
 import org.theseed.sequence.Sequence;
 
 /**
  * A contig sensor represents a position on a contig, and contains information about
- * the DNA letters at and to either side of that position.  The position itself is
- * in the exact center of the sensor.  Each DNA letter is represented by a floating-
+ * the DNA letters at and to either side of that position.  In normal mode, the position
+ * itself is in the exact center of the sensor.  In plus-only mode, the position is on the
+ * left edge of the sensor.  Each DNA letter is represented by a floating-
  * point number:  A = 0.2, G = 0.4, C = 0.6, T = 0.8, other/missing = 0.
  *
  * Note that in Deep Learning lingo, what we are calling a "sensor" is called a
@@ -37,6 +40,9 @@ public class ContigSensor {
     /** global sensor width, to either side of the target position */
     private static int halfWidth = 14;
 
+    /** TRUE if we should only sense to the right */
+    private static boolean plusOnly = false;
+
     /**
      * Construct a contig sensor from a specific position on the contig.
      *
@@ -51,7 +57,7 @@ public class ContigSensor {
         // Now fill in the sensors.
         this.sensors = new double[getSensorWidth()];
         // Compute the first contig offset to be sensed.
-        int offset0 = position - 1 - halfWidth;
+        int offset0 = position - 1 - (plusOnly ? 0 : halfWidth);
         for (int i = 0; i < this.sensors.length; i++) {
             int p = offset0 + i;
             if (p < 0 || p >= sequence.length()) {
@@ -91,6 +97,14 @@ public class ContigSensor {
         return this.contigId;
     }
 
+    /**
+     * @return a tab-delimited string of all the sensor values, in order
+     */
+    @Override
+    public String toString() {
+        return Arrays.stream(this.sensors).mapToObj(Double::toString)
+                .collect(Collectors.joining("\t"));
+    }
     /**
      * @return the position for this sensor
      */
@@ -143,15 +157,15 @@ public class ContigSensor {
      *
      * @param new sensor width
      */
-    public static void setHalfWidth(int sensorWidth) {
-        ContigSensor.halfWidth = sensorWidth;
+    public static void setHalfWidth(int newWidth) {
+        ContigSensor.halfWidth = newWidth;
     }
 
     /**
      * @return the number of values in a sensor.
      */
     public static int getSensorWidth() {
-        return halfWidth + halfWidth + 1;
+        return halfWidth + 1 + (plusOnly ? 0 : halfWidth);
     }
 
     /**
@@ -194,5 +208,35 @@ public class ContigSensor {
         }
         return retVal;
     }
+
+    /**
+     * Write the sensor headers to the specified stream.  It is presumed they are not
+     * in the first column.
+     *
+     * @param out	desired output stream
+     */
+    public static void sensor_headers(PrintStream out) {
+        int hw = ContigSensor.getHalfWidth();
+        for (int idx = (plusOnly ? 0 : -hw); idx <= hw; idx++) {
+            out.format("\tpos.%02d", idx);
+        }
+    }
+
+    /**
+     * @return TRUE if the sensors are only to the right of the target position
+     */
+    public static boolean isPlusOnly() {
+        return plusOnly;
+    }
+
+    /**
+     * @param plusOnly 	TRUE if the sensors should only be to the right of the target position,
+     * 					else FALSE
+     */
+    public static void setPlusOnly(boolean plusOnly) {
+        ContigSensor.plusOnly = plusOnly;
+    }
+
+
 
 }
