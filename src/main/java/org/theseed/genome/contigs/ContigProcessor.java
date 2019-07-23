@@ -38,9 +38,11 @@ import org.theseed.utils.ICommand;
  * -k	chunk size for contigs; one output run will be produced for every piece of
  * 		the contig this size or greater; the default is 90000
  * -f	forward only; the sensors are only to the right of the target position
+ * -n	normally, only plus-strand locations are considered coding regions; if this is
+ * 		specified, minus-strand locations are included as well
  *
  * --type		type of classification to do; the values are
- *    	binary	outputs a class of "coding" for a frame in a coding region and
+ *    	coding	outputs a class of "coding" for a frame in a coding region and
  * 				"space" for a frame not in a coding region; the default is to
  * 				output the actual frame label
  * 		edge	outputs a class of "start" for the first base pair of a coding region,
