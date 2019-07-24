@@ -58,16 +58,13 @@ import org.theseed.utils.ICommand;
  *
  */
 
-// TODO only option is forward-only
-// TODO three different types of location sensors
-
 public class ContigProcessor implements ICommand {
 
     // FIELDS
     /** random number generator */
     private static Random rand = new Random();
     /** tracker for the number of examples generated per frame */
-    private CountMap<Frame> frameCounter;
+    private CountMap<String> classCounter;
 
     // COMMAND-LINE OPTIONS
 
@@ -102,13 +99,13 @@ public class ContigProcessor implements ICommand {
             usage="size of a contig section for choosing a run")
     private int chunkSize;
 
-    /** positive-only flag */
-    @Option(name="-p", aliases= {"--plus", "--forward"}, usage="only consider plus strand")
-    private boolean plusOnly;
+    /** negative-allowed flag */
+    @Option(name="-n", aliases= {"--negative", "--minus"}, usage="include minus strand results")
+    private boolean negative;
 
-    /** binary mode flag */
-    @Option(name="--binary", usage="use coding/space rather than frame-based classification")
-    private boolean binaryMode;
+    /** output type flag */
+    @Option(name="--type", usage="type of classification")
+    private LocationClass.Type classType;
 
     /** input directories */
     @Argument(index=0, metaVar="genomeDir1 genomeDir2 ...", usage="directories containing genome objects",
@@ -129,7 +126,8 @@ public class ContigProcessor implements ICommand {
         this.help = false;
         this.debug = false;
         this.chunkSize = 90000;
-        this.plusOnly = false;
+        this.negative = false;
+        this.classType = LocationClass.Type.PHASE;
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
@@ -159,7 +157,8 @@ public class ContigProcessor implements ICommand {
      */
     public void run() {
         // Initialize the private data.
-        this.frameCounter = new CountMap<Frame>();
+        this.classCounter = new CountMap<String>();
+        LocationClass lsensor = LocationClass.scheme(this.classType, this.negative);
         // The first job is to create the output header.  The first column is the
         // frame and the remaining columns are sensors.
         System.out.print("frame");
@@ -176,16 +175,16 @@ public class ContigProcessor implements ICommand {
                     // Create this genome's coding map.
                     Map<String, LocationList> codingMap = LocationList.createGenomeCodingMap(genome);
                     for (Contig contig : genome.getContigs()) {
-                        ProcessContig(contig, codingMap.get(contig.getId()));
+                        ProcessContig(contig, codingMap.get(contig.getId()), lsensor);
                     }
                 }
             }
             if (debug) {
                 // Display counts for each frame, so we can see if we have well-distributed
                 // results.
-                for (Frame frm : Frame.all) {
-                    System.err.format("%s has %8d results.%n", frm.toString(),
-                            this.frameCounter.getCount(frm));
+                for (String cl : this.classCounter.keys()) {
+                    System.err.format("%s has %8d results.%n", cl,
+                            this.classCounter.getCount(cl));
                 }
             }
         } catch (IOException e) {
@@ -198,8 +197,9 @@ public class ContigProcessor implements ICommand {
      *
      * @param contig	contig of interest
      * @param framer	location list used to compute frames
+     * @param lsensor 	classification scheme for locations
      */
-    private void ProcessContig(Contig contig, LocationList framer) {
+    private void ProcessContig(Contig contig, LocationList framer, LocationClass lsensor) {
         // Run through the contig in 50,000 base-pair chunks, choosing random locations
         // to output.
         int limit = contig.length();
@@ -212,6 +212,9 @@ public class ContigProcessor implements ICommand {
             int start = rand.nextInt(end - pos) + pos;
             // This will count the number of valid positions output.
             int count = 0;
+            // This tracks the previous frame.
+            Frame prevFrame = Frame.P0;
+            // Loop through the contig locations.
             while (start <= limit && count < this.runLength) {
                 // Get the coding frame. That's our first output column.
                 Frame thisFrame = framer.computeRegionFrame(start, start);
@@ -220,26 +223,18 @@ public class ContigProcessor implements ICommand {
                 if (thisFrame != Frame.XX) {
                     ContigSensor proposal = new ContigSensor(contig.getId(), start, contig.getSequence());
                     if (! proposal.isSuspicious()) {
-                        // Join all the sensor values into a tab-delimited string.
-                        // Adjust for plus-only.
-                        if (this.plusOnly && thisFrame.compareTo(Frame.F0) < 0) {
-                            thisFrame = Frame.F0;
-                        }
                         // Compute the frame string.
-                        String frame;
-                        if (this.binaryMode) {
-                            frame = (thisFrame == Frame.F0 ? "space" : "coding");
-                        } else {
-                            frame = thisFrame.toString();
-                        }
+                        String frame = lsensor.classOf(prevFrame, thisFrame);
                         // Write the frame followed by the sensor data.
                         System.out.format("%s\t%s%n", frame, proposal.toString());
                         // Record the output.
                         count++;
-                        this.frameCounter.count(thisFrame);
+                        this.classCounter.count(frame);
                     }
                 }
+                // Move to the next position.
                 start++;
+                prevFrame = thisFrame;
             }
             pos = (start >= end ? start + 1 : end);
             end = pos + this.chunkSize;

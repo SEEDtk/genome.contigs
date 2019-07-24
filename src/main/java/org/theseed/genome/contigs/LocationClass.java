@@ -60,7 +60,7 @@ public abstract class LocationClass {
 	 */
 	public Frame normalize(Frame frm) {
 		Frame retVal = frm;
-		if (this.negative && frm != Frame.XX && frm.negative()) {
+		if (! this.negative && frm.negative()) {
 			retVal = Frame.F0;
 		}
 		return retVal;
@@ -96,6 +96,9 @@ public abstract class LocationClass {
 
 	// SUBCLASSES
 
+	/**
+	 * Classification is the actual coding frame string (+1, +2, +3, 0)
+	 */
 	public static class Phase extends LocationClass {
 
 		public Phase(boolean negativeFlag) {
@@ -104,12 +107,14 @@ public abstract class LocationClass {
 
 		@Override
 		protected String computeClass(Frame prevFrame, Frame thisFrame) {
-			// TODO Auto-generated method stub
-			return null;
+			return thisFrame.toString();
 		}
 
 	}
 
+	/**
+	 * Classification is "start", "stop", or "other".
+	 */
 	public static class Edge extends LocationClass {
 
 		public Edge(boolean negativeFlag) {
@@ -121,15 +126,18 @@ public abstract class LocationClass {
 		@Override
 		protected String computeClass(Frame prevFrame, Frame thisFrame) {
 			String retVal = "other";
-			if (thisFrame == Frame.P1 && prevFrame == Frame.F0)
+			if (thisFrame == Frame.P0 && prevFrame == Frame.F0)
 				retVal = "start";
-			else if (thisFrame == Frame.F0 && prevFrame == Frame.P2)
+			else if (prevFrame == Frame.P2 && thisFrame == Frame.F0)
 				retVal = "stop";
 			return retVal;
 		}
 
 	}
 
+	/**
+	 * Classification is "coding" or "space".
+	 */
 	public static class Coding extends LocationClass {
 
 		public Coding(boolean negativeFlag) {
