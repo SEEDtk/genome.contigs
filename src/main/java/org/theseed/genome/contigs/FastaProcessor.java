@@ -105,6 +105,7 @@ public class FastaProcessor implements ICommand {
             // remaining columns are sensors.
             System.out.print("Location");
             ContigSensor.sensor_headers(System.out);
+            System.out.println();
             // Now we loop through the sequences, producing output.
             for (File inFile : this.inFiles) {
                 if (debug) System.err.println("Processing file " + inFile + ".");
