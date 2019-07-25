@@ -16,7 +16,7 @@ import org.theseed.sequence.Sequence;
  * the DNA letters at and to either side of that position.  In normal mode, the position
  * itself is in the exact center of the sensor.  In plus-only mode, the position is on the
  * left edge of the sensor.  Each DNA letter is represented by a floating-
- * point number:  A = 0.2, G = 0.4, C = 0.6, T = 0.8, other/missing = 0.
+ * point number, with other/missing = 0.
  *
  * Note that in Deep Learning lingo, what we are calling a "sensor" is called a
  * "feature".  That term, however, is already heavily overloaded on the genome
@@ -66,21 +66,21 @@ public class ContigSensor {
                 switch (sequence.charAt(p)) {
                 case 'A':
                 case 'a' :
-                    this.sensors[i] = -0.6;
+                    this.sensors[i] = -0.3;
                     break;
                 case 'C':
                 case 'c':
-                    this.sensors[i] = -0.3;
+                    this.sensors[i] = -0.6;
                     break;
                 case 'G':
                 case 'g':
-                    this.sensors[i] = 0.3;
+                    this.sensors[i] = 0.6;
                     break;
                 case 'T':
                 case 't':
                 case 'U':
                 case 'u':
-                    this.sensors[i] = 0.6;
+                    this.sensors[i] = 0.3;
                     break;
                 default:
                     this.sensors[i] = 0.0;
