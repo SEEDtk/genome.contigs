@@ -37,7 +37,6 @@ import org.theseed.utils.ICommand;
  * -v	write progress messages to STDERR
  * -k	chunk size for contigs; one output run will be produced for every piece of
  * 		the contig this size or greater; the default is 90000
- * -f	forward only; the sensors are only to the right of the target position
  * -n	normally, only plus-strand locations are considered coding regions; if this is
  * 		specified, minus-strand locations are included as well
  *
@@ -52,6 +51,11 @@ import org.theseed.utils.ICommand;
  * 				base pair of a codon, "+2" for the second, and "+3" for the third
  * 				(this is the default)
  *
+ * --sensor		type of DNA sensor to use
+ * 		direct	each base pair converts to a single number
+ * 		one_hot	each base pair converts to four numbers-- 3 zeroes and a one; the position
+ * 				of the one indicates the nucleotide
+ *
  * The positional parameters are the names of the input directories.
  *
  * @author Bruce Parrello
@@ -65,6 +69,8 @@ public class ContigProcessor implements ICommand {
     private static Random rand = new Random();
     /** tracker for the number of examples generated per frame */
     private CountMap<String> classCounter;
+    /** factory object for creating contig sensors */
+    private ContigSensorFactory factory;
 
     // COMMAND-LINE OPTIONS
 
@@ -76,14 +82,7 @@ public class ContigProcessor implements ICommand {
     @Option(name="-w", aliases={"--width"}, metaVar="14",
             usage="distance on either side for sensors")
     private void setWidth(int newWidth) {
-        ContigSensor.setHalfWidth(newWidth);
-    }
-
-    /** forward-only flag */
-    @Option(name="-f", aliases={"--rightOnly", "--forwardOnly"},
-            usage="if specified, no sensors left of the position are used")
-    private void setPlusOnly(boolean newFlag) {
-        ContigSensor.setPlusOnly(newFlag);
+        ContigSensorFactory.setHalfWidth(newWidth);
     }
 
     /** run length for output */
@@ -107,6 +106,12 @@ public class ContigProcessor implements ICommand {
     @Option(name="--type", usage="type of classification")
     private LocationClass.Type classType;
 
+    /** sensor type */
+    @Option(name="--sensor", metaVar="one_hot", usage="type of DNA sensor to use")
+    private void setFactory(ContigSensorFactory.Type type) {
+        this.factory = ContigSensorFactory.create(type);
+    }
+
     /** input directories */
     @Argument(index=0, metaVar="genomeDir1 genomeDir2 ...", usage="directories containing genome objects",
             multiValued=true)
@@ -128,6 +133,7 @@ public class ContigProcessor implements ICommand {
         this.chunkSize = 90000;
         this.negative = false;
         this.classType = LocationClass.Type.PHASE;
+        this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.DIRECT);
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
@@ -161,9 +167,7 @@ public class ContigProcessor implements ICommand {
         LocationClass lsensor = LocationClass.scheme(this.classType, this.negative);
         // The first job is to create the output header.  The first column is the
         // frame and the remaining columns are sensors.
-        System.out.print("frame");
-        ContigSensor.sensor_headers(System.out);
-        System.out.println();
+        System.out.println("frame\t" + this.factory.sensor_headers());
         try {
             // Loop through the genome directories.
             for (File genomeDir : this.genomeDirs) {
@@ -221,7 +225,7 @@ public class ContigProcessor implements ICommand {
                 // Try to output this position.  We only output non-suspicious positions for
                 // valid frames.
                 if (thisFrame != Frame.XX) {
-                    ContigSensor proposal = new ContigSensor(contig.getId(), start, contig.getSequence());
+                    ContigSensor proposal = this.factory.create(contig.getId(), start, contig.getSequence());
                     if (! proposal.isSuspicious()) {
                         // Compute the frame string.
                         String frame = lsensor.classOf(prevFrame, thisFrame);

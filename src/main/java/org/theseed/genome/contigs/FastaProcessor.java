@@ -27,13 +27,20 @@ import org.theseed.utils.ICommand;
  * -w	the number of positions to look at on either side of a base pair; the default
  * 		is 14
  * -v	write progress messages to STDERR
- * -f	forward only; the sensors are only to the right of the target position
+ *
+ * --sensor		type of DNA sensor to use
+ * 		direct	each base pair converts to a single number
+ * 		one_hot	each base pair converts to four numbers-- 3 zeroes and a one; the position
+ * 				of the one indicates the nucleotide
  *
  * @author Bruce Parrello
  *
  */
 public class FastaProcessor implements ICommand {
 
+    // FIELDS
+    /** factory object for creating contig sensors */
+    private ContigSensorFactory factory;
 
 
     // COMMAND-LINE OPTIONS
@@ -46,19 +53,18 @@ public class FastaProcessor implements ICommand {
     @Option(name="-w", aliases={"--width"}, metaVar="14",
             usage="distance on either side for sensors")
     private void setWidth(int newWidth) {
-        ContigSensor.setHalfWidth(newWidth);
-    }
-
-    /** forward-only flag */
-    @Option(name="-f", aliases={"--rightOnly", "--forwardOnly"},
-            usage="if specified, no sensors left of the position are used")
-    private void setPlusOnly(boolean newFlag) {
-        ContigSensor.setPlusOnly(newFlag);
+        ContigSensorFactory.setHalfWidth(newWidth);
     }
 
     /** debug switch */
     @Option(name="-v", aliases={"--verbose", "--debug"}, usage="write progress messages to STDERR")
     private boolean debug;
+
+    /** sensor type */
+    @Option(name="--sensor", metaVar="one_hot", usage="type of DNA sensor to use")
+    private void setFactory(ContigSensorFactory.Type type) {
+        this.factory = ContigSensorFactory.create(type);
+    }
 
     /** FASTA file names */
     @Argument(index=0, metaVar="file1.fa file2.fa ...", usage="FASTA files to process")
@@ -75,6 +81,7 @@ public class FastaProcessor implements ICommand {
         // Set the defaults.
         this.help = false;
         this.debug = false;
+        this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.DIRECT);
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
@@ -103,16 +110,14 @@ public class FastaProcessor implements ICommand {
         try {
             // Create the output header.  The first column is the metadata location, and the
             // remaining columns are sensors.
-            System.out.print("Location");
-            ContigSensor.sensor_headers(System.out);
-            System.out.println();
+            System.out.println("Location\t" + this.factory.sensor_headers());
             // Now we loop through the sequences, producing output.
             for (File inFile : this.inFiles) {
                 if (debug) System.err.println("Processing file " + inFile + ".");
                 FastaInputStream inStream = new FastaInputStream(inFile);
                 for (Sequence inSeq : inStream) {
                     // For this sequence, output all the sensors.
-                    for (ContigSensor sensor : ContigSensor.processContig(inSeq)) {
+                    for (ContigSensor sensor : this.factory.processContig(inSeq)) {
                         System.out.format("%s\t%s%n", sensor.getMeta(), sensor.toString());
                     }
                 }
