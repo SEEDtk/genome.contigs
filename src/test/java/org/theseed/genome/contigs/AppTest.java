@@ -81,7 +81,7 @@ public class AppTest
         myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.CHANNEL);
         sensors = myFactory.processContig(frec);
         sensor1 = sensors.get(0);
-        sensor11 = sensors.get(11);
+        sensor11 = sensors.get(10);
         assertThat("Wrong contig ID for first sensor.", sensor1.getContigId(), equalTo(contigID));
         assertThat("Wrong position for first sensor.", sensor1.getPosition(), equalTo(1));
         assertThat("Wrong meta string for first sensor.", sensor1.getMeta(), equalTo(contigID + ";1"));
@@ -89,8 +89,8 @@ public class AppTest
                 contains("-", "-", "-", "-", "A", "A", "C", "G", "T"));
         assertThat("Wrong sensors for 11th", sensor11.getSensorList(),
                 contains("C", "T", "G", "A", "A", "G", "T", "C", "-"));
-        assertThat("Wrong contig ID for 11th", sensor11.getContigId(), equalTo(contigID));
-        assertThat("Wrong position for 11th", sensor11.getPosition(), equalTo(12));
+        assertThat("Wrong contig ID for 10th", sensor11.getContigId(), equalTo(contigID));
+        assertThat("Wrong position for 10th", sensor11.getPosition(), equalTo(11));
         myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.CODON);
         ContigSensorFactory.setHalfWidth(4);
         assertThat("Wrong header", myFactory.sensor_headers(),
@@ -101,8 +101,8 @@ public class AppTest
         assertThat("Wrong position for first sensor.", sensor1.getPosition(), equalTo(1));
         assertThat("Wrong meta string for first sensor.", sensor1.getMeta(), equalTo(contigID + ";1"));
         assertThat("Wrong sensors for first", sensor1.getSensorList(),
-                contains("0.0", "0.0", "0.002", "0.022", "0.226", "0.268", "0.684", "0.846", "0.466"));
-        assertThat("Wrong string", sensor1.toString(), equalTo("0.0\t0.0\t0.002\t0.022\t0.226\t0.268\t0.684\t0.846\t0.466"));
+                contains("0.000", "0.000", "0.002", "0.022", "0.226", "0.268", "0.684", "0.846", "0.466"));
+        assertThat("Wrong string", sensor1.toString(), equalTo("0.000\t0.000\t0.002\t0.022\t0.226\t0.268\t0.684\t0.846\t0.466"));
     }
 
     /*

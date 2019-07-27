@@ -25,7 +25,9 @@ public class CodonContigSensorFactory extends ContigSensorFactory {
             StringBuffer v = new StringBuffer(5);
             v.append("0.");
             for (int j = actual; j <= actual + 2; j++) {
-                if (j >= 0 && j < sequence.length()) {
+                if (j < 0 || j >= sequence.length()) {
+                    v.append('0');
+                } else {
                     switch (sequence.charAt(j)) {
                     case 'A' :
                     case 'a' :
