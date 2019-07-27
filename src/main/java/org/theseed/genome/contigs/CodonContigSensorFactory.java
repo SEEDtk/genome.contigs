@@ -19,38 +19,39 @@ public class CodonContigSensorFactory extends ContigSensorFactory {
         int halfWidth = ContigSensorFactory.getHalfWidth();
         int fullWidth = halfWidth * 2 + 1;
         int offset = pos - halfWidth - 1;
-        double[] buffer = new double[fullWidth];
+        String[] buffer = new String[fullWidth];
         for (int i = 0; i < buffer.length; i++) {
             int actual = offset + i;
-            double v = 0.0;
+            StringBuffer v = new StringBuffer(5);
+            v.append("0.");
             for (int j = actual; j <= actual + 2; j++) {
-                v *= 10.0;
                 if (j >= 0 && j < sequence.length()) {
                     switch (sequence.charAt(j)) {
                     case 'A' :
                     case 'a' :
-                        v += 2;
+                        v.append('2');
                         break;
                     case 'C' :
                     case 'c' :
-                        v += 6;
+                        v.append('6');
                         break;
                     case 'G' :
                     case 'g' :
-                        v += 8;
+                        v.append('8');
                         break;
                     case 'T' :
                     case 't' :
                     case 'U' :
                     case 'u' :
-                        v += 4;
+                        v.append('4');
                         break;
                     default :
+                        v.append('0');
                         suspicion = true;
                     }
                 }
             }
-            buffer[i] = v / 1000;
+            buffer[i] = v.toString();
         }
         sensor.storeSensors(buffer, suspicion);
     }

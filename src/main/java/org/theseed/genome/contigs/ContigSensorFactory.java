@@ -20,7 +20,7 @@ public abstract class ContigSensorFactory {
      * types of sensors currently supported
      */
     public static enum Type {
-        DIRECT, ONE_HOT, CODON
+        DIRECT, CHANNEL, CODON
     }
 
     /** global sensor width, to either side of the target position */
@@ -121,8 +121,8 @@ public abstract class ContigSensorFactory {
         case DIRECT :
             retVal = new DirectContigSensorFactory();
             break;
-        case ONE_HOT :
-            retVal = new OneHotContigSensorFactory();
+        case CHANNEL :
+            retVal = new ChannelContigSensorFactory();
             break;
         case CODON :
             retVal = new CodonContigSensorFactory();

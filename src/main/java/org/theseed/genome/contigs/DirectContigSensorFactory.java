@@ -17,30 +17,30 @@ public class DirectContigSensorFactory extends ContigSensorFactory {
         int halfWidth = ContigSensorFactory.getHalfWidth();
         int fullWidth = halfWidth * 2 + 1;
         int offset = pos - halfWidth - 1;
-        double[] buffer = new double[fullWidth];
+        String[] buffer = new String[fullWidth];
         for (int i = 0; i < buffer.length; i++) {
             int actual = offset + i;
             if (actual < 0 || actual >= sequence.length()) {
-                buffer[i] = 0.0;
+                buffer[i] = "0.0";
             } else switch (sequence.charAt(actual)) {
                 case 'A' :
                 case 'a' :
-                    buffer[i] = -0.3;
+                    buffer[i] = "-0.3";
                     break;
                 case 'C' :
                 case 'c' :
-                    buffer[i] = -0.6;
+                    buffer[i] = "-0.6";
                     break;
                 case 'G' :
                 case 'g' :
-                    buffer[i] = 0.6;
+                    buffer[i] = "0.6";
                     break;
                 case 'T' :
                 case 't' :
-                    buffer[i] = 0.3;
+                    buffer[i] = "0.3";
                     break;
                 default :
-                    buffer[i] = 0.0;
+                    buffer[i] = "0.0";
                     suspicion = true;
             }
         }

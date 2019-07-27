@@ -5,12 +5,12 @@ package org.theseed.genome.contigs;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A contig sensor represents a position on a contig, and contains information about
  * the DNA letters at and to either side of that position.  Each DNA letter is represented
- * by one or more floating-point numbers.  A ContigSensorFactory class builds these.
+ * by one or more strings (usually floating-point numbers).  A ContigSensorFactory class builds these.
  *
  * Note that in Deep Learning lingo, what we are calling a "sensor" is called a
  * "feature".  That term, however, is already heavily overloaded on the genome
@@ -27,7 +27,7 @@ public class ContigSensor {
     /** position in the contig (1-based) */
     int position;
     /** sensors to either side */
-    double[] sensors;
+    String[] sensors;
     /** TRUE if this sensor includes ambiguity characters */
     boolean suspicious;
 
@@ -55,8 +55,7 @@ public class ContigSensor {
      */
     @Override
     public String toString() {
-        return Arrays.stream(this.sensors).mapToObj(Double::toString)
-                .collect(Collectors.joining("\t"));
+        return StringUtils.join(this.sensors, '\t');
     }
     /**
      * @return the position for this sensor
@@ -75,7 +74,7 @@ public class ContigSensor {
     /**
      * @return the sensor values
      */
-    public double[] getSensors() {
+    public String[] getSensors() {
         return this.sensors;
     }
 
@@ -85,7 +84,7 @@ public class ContigSensor {
      * @param newSensors	new sensors to store
      * @param suspicious	TRUE if there were ambiguity characters found
      */
-    protected void storeSensors(double[] newSensors, boolean suspicious) {
+    protected void storeSensors(String[] newSensors, boolean suspicious) {
         this.sensors = newSensors;
         this.suspicious = suspicious;
     }
@@ -93,8 +92,8 @@ public class ContigSensor {
     /**
      * @return the sensor values in a list
      */
-    public List<Double> getSensorList() {
-        List<Double> retVal = Arrays.stream(this.sensors).boxed().collect(Collectors.toList());
+    public List<String> getSensorList() {
+        List<String> retVal = Arrays.asList(this.sensors);
         return retVal;
     }
 

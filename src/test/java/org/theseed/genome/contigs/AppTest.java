@@ -58,10 +58,10 @@ public class AppTest
         assertThat("Wrong position for first sensor.", sensor1.getPosition(), equalTo(1));
         assertThat("Wrong meta string for first sensor.", sensor1.getMeta(), equalTo(contigID + ";1"));
         assertThat("Wrong sensors for first", sensor1.getSensorList(),
-                contains(0.0, 0.0, 0.0, 0.0, -0.3, -0.3, -0.6, 0.6, 0.3));
+                contains("0.0", "0.0", "0.0", "0.0", "-0.3", "-0.3", "-0.6", "0.6", "0.3"));
         assertThat("Wrong string", sensor1.toString(), equalTo("0.0\t0.0\t0.0\t0.0\t-0.3\t-0.3\t-0.6\t0.6\t0.3"));
         assertThat("Wrong sensors for 11th", sensor11.getSensorList(),
-                contains(0.3, 0.6, -0.3, -0.3, 0.6, 0.3, -0.6, 0.0, 0.0));
+                contains("0.3", "0.6", "-0.3", "-0.3", "0.6", "0.3", "-0.6", "0.0", "0.0"));
         assertThat("Wrong contig ID for 11th", sensor11.getContigId(), equalTo(contigID));
         assertThat("Wrong position for 11th", sensor11.getPosition(), equalTo(12));
         for (ContigSensor sensor : sensors) {
@@ -73,15 +73,12 @@ public class AppTest
         assertThat("Wrong position for post-N sensor.", sensor11.getPosition(), equalTo(11));
         sensor1 = myFactory.create(contigID, 7, contig.getSequence());
         assertTrue("Sensor not suspicious.", sensor1.isSuspicious());
-        double[] sensorArray = sensor1.getSensors();
-        List<Double> sensorList = sensor1.getSensorList();
+        String[] sensorArray = sensor1.getSensors();
+        List<String> sensorList = sensor1.getSensorList();
         for (int i = 0; i < sensorArray.length; i++) {
             assertThat("Sensor mismatch at " + i, sensorArray[i], equalTo(sensorList.get(i)));
         }
-        myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.ONE_HOT);
-        ContigSensorFactory.setHalfWidth(2);
-        assertThat("Wrong header", myFactory.sensor_headers(),
-                equalTo("pos.-2A\tpos.-2C\tpos.-2G\tpos.-2T\tpos.-1A\tpos.-1C\tpos.-1G\tpos.-1T\tpos.0A\tpos.0C\tpos.0G\tpos.0T\tpos.1A\tpos.1C\tpos.1G\tpos.1T\tpos.2A\tpos.2C\tpos.2G\tpos.2T"));
+        myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.CHANNEL);
         sensors = myFactory.processContig(frec);
         sensor1 = sensors.get(0);
         sensor11 = sensors.get(11);
@@ -89,9 +86,9 @@ public class AppTest
         assertThat("Wrong position for first sensor.", sensor1.getPosition(), equalTo(1));
         assertThat("Wrong meta string for first sensor.", sensor1.getMeta(), equalTo(contigID + ";1"));
         assertThat("Wrong sensors for first", sensor1.getSensorList(),
-                contains(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0));
+                contains("-", "-", "-", "-", "A", "A", "C", "G", "T"));
         assertThat("Wrong sensors for 11th", sensor11.getSensorList(),
-                contains(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0));
+                contains("C", "T", "G", "A", "A", "G", "T", "C", "-"));
         assertThat("Wrong contig ID for 11th", sensor11.getContigId(), equalTo(contigID));
         assertThat("Wrong position for 11th", sensor11.getPosition(), equalTo(12));
         myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.CODON);
@@ -104,7 +101,7 @@ public class AppTest
         assertThat("Wrong position for first sensor.", sensor1.getPosition(), equalTo(1));
         assertThat("Wrong meta string for first sensor.", sensor1.getMeta(), equalTo(contigID + ";1"));
         assertThat("Wrong sensors for first", sensor1.getSensorList(),
-                contains(0.0, 0.0, 0.002, 0.022, 0.226, 0.268, 0.684, 0.846, 0.466));
+                contains("0.0", "0.0", "0.002", "0.022", "0.226", "0.268", "0.684", "0.846", "0.466"));
         assertThat("Wrong string", sensor1.toString(), equalTo("0.0\t0.0\t0.002\t0.022\t0.226\t0.268\t0.684\t0.846\t0.466"));
     }
 
