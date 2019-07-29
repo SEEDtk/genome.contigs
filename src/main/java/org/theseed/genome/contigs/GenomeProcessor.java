@@ -76,7 +76,7 @@ public class GenomeProcessor implements ICommand {
     private LocationClass.Type classType;
 
     /** sensor type */
-    @Option(name="--sensor", metaVar="one_hot", usage="type of DNA sensor to use")
+    @Option(name="--sensor", metaVar="codon", usage="type of DNA sensor to use (default: CHANNEL)")
     private void setFactory(ContigSensorFactory.Type type) {
         this.factory = ContigSensorFactory.create(type);
     }
