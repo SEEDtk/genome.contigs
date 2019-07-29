@@ -6,8 +6,8 @@ import org.theseed.utils.ICommand;
 
 /**
  * Output contig data for the learning module.  The possible commands are "train" to output
- * a training set and "predict" to output an input set for prediction.  The training set
- * output is handled by ContigProcessor and the prediction set output by SequenceProcessor.
+ * a training set, "predict" to output an input set for prediction, and "test" to
+ * output a test set for verification.
  */
 public class App
 {
@@ -24,6 +24,9 @@ public class App
             break;
         case "predict" :
             processor = new FastaProcessor();
+            break;
+        case "test" :
+            processor = new GenomeProcessor();
             break;
         default :
             throw new RuntimeException("Invalid command " + command + ": must be \"train\" or \"predict\".");

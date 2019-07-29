@@ -46,15 +46,16 @@ import org.theseed.utils.ICommand;
  * 				output the actual frame label
  * 		edge	outputs a class of "start" for the first base pair of a coding region,
  * 				"stop" for the last base pair of a coding region, and "space" for
- * 				everything else
+ * 				everything else (this is the default)
  * 		phase	outputs a class of "0" for a non-coding region, "+1" for the first
  * 				base pair of a codon, "+2" for the second, and "+3" for the third
- * 				(this is the default)
  *
  * --sensor		type of DNA sensor to use
  * 		direct	each base pair converts to a single number
- * 		one_hot	each base pair converts to four numbers-- 3 zeroes and a one; the position
- * 				of the one indicates the nucleotide
+ * 		codon	each base pair converts to a number computed from the three base pairs beginning
+ * 				at the current position
+ * 		channel	each base pair is converted to a vector of the probabilities for each possible
+ * 				nucleotide value (this is the default)
  *
  * The positional parameters are the names of the input directories.
  *
@@ -132,8 +133,8 @@ public class ContigProcessor implements ICommand {
         this.debug = false;
         this.chunkSize = 90000;
         this.negative = false;
-        this.classType = LocationClass.Type.PHASE;
-        this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.DIRECT);
+        this.classType = LocationClass.Type.EDGE;
+        this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.CHANNEL);
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);

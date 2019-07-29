@@ -30,8 +30,10 @@ import org.theseed.utils.ICommand;
  *
  * --sensor		type of DNA sensor to use
  * 		direct	each base pair converts to a single number
- * 		one_hot	each base pair converts to four numbers-- 3 zeroes and a one; the position
- * 				of the one indicates the nucleotide
+ * 		codon	each base pair converts to a number computed from the three base pairs beginning
+ * 				at the current position
+ * 		channel	each base pair is converted to a vector of the probabilities for each possible
+ * 				nucleotide value (this is the default)
  *
  * @author Bruce Parrello
  *
@@ -61,7 +63,7 @@ public class FastaProcessor implements ICommand {
     private boolean debug;
 
     /** sensor type */
-    @Option(name="--sensor", metaVar="one_hot", usage="type of DNA sensor to use")
+    @Option(name="--sensor", metaVar="channel", usage="type of DNA sensor to use")
     private void setFactory(ContigSensorFactory.Type type) {
         this.factory = ContigSensorFactory.create(type);
     }
@@ -81,7 +83,7 @@ public class FastaProcessor implements ICommand {
         // Set the defaults.
         this.help = false;
         this.debug = false;
-        this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.DIRECT);
+        this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.CHANNEL);
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
