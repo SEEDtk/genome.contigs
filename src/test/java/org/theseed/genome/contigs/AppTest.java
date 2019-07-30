@@ -11,6 +11,8 @@ import static org.hamcrest.Matchers.*;
 import java.util.List;
 import org.theseed.genomes.Contig;
 import org.theseed.locations.Frame;
+import org.theseed.locations.Location;
+import org.theseed.locations.LocationList;
 import org.theseed.sequence.Sequence;
 
 
@@ -118,65 +120,63 @@ public class AppTest
         assertThat("Incorrect normalize for P1, negative.", lsensor.normalize(Frame.P1), equalTo(Frame.P1));
         assertThat("Incorrect normalize for P0, negative.", lsensor.normalize(Frame.P0), equalTo(Frame.P0));
         assertThat("Incorrect normalize for XX, negative.", lsensor.normalize(Frame.XX), equalTo(Frame.XX));
-        assertThat("Incorrect coding result for M2, negative.", lsensor.classOf(Frame.P0, Frame.M2), equalTo("coding"));
-        assertThat("Incorrect coding result for M1, negative.", lsensor.classOf(Frame.P0, Frame.M1), equalTo("coding"));
-        assertThat("Incorrect coding result for M0, negative.", lsensor.classOf(Frame.P0, Frame.M0), equalTo("coding"));
-        assertThat("Incorrect coding result for F0, negative.", lsensor.classOf(Frame.P0, Frame.F0), equalTo("space"));
-        assertThat("Incorrect coding result for P2, negative.", lsensor.classOf(Frame.P0, Frame.P2), equalTo("coding"));
-        assertThat("Incorrect coding result for P1, negative.", lsensor.classOf(Frame.P0, Frame.P1), equalTo("coding"));
-        assertThat("Incorrect coding result for P0, negative.", lsensor.classOf(Frame.P0, Frame.P0), equalTo("coding"));
-        assertNull("Incorrect coding result for XX, negative.", lsensor.classOf(Frame.P0, Frame.XX));
+        LocationList newList = new LocationList("myContig");
+        Location[] locs = { Location.create("myContig", "+", 10, 99, 102, 199),
+                            Location.create("myContig", "-", 100, 400),
+                            Location.create("myContig", "-", 500, 999),
+                            Location.create("myContig", "-", 3000, 3199),
+                            Location.create("myContig", "+", 4000, 4999),
+                            Location.create("myContig", "-", 6000, 6199),
+                            Location.create("myContig", "+", 6800, 7299),
+                            Location.create("myContig", "+", 8000, 8199),
+                            Location.create("myContig", "+", 8400, 8599),
+                            Location.create("myContig", "+", 9100, 9190),
+                            Location.create("myContig", "+", 9200, 9290),
+                            Location.create("myContig", "-", 9300, 9390),
+                            Location.create("myContig", "+", 9400, 9490),
+                            Location.create("myContig", "-", 9500, 9999),
+                          };
+        // Add all these locations to the list.
+        for (Location loc : locs) {
+            assertTrue("Failed to add " + loc + " to list.", newList.addLocation(loc));
+        }
         lsensor = LocationClass.scheme(LocationClass.Type.CODING, false);
-        assertThat("Incorrect coding result for M2, positive.", lsensor.classOf(Frame.P0, Frame.M2), equalTo("space"));
-        assertThat("Incorrect coding result for M1, positive.", lsensor.classOf(Frame.P0, Frame.M1), equalTo("space"));
-        assertThat("Incorrect coding result for M0, positive.", lsensor.classOf(Frame.P0, Frame.M0), equalTo("space"));
-        assertThat("Incorrect coding result for F0, positive.", lsensor.classOf(Frame.P0, Frame.F0), equalTo("space"));
-        assertThat("Incorrect coding result for P2, positive.", lsensor.classOf(Frame.P0, Frame.P2), equalTo("coding"));
-        assertThat("Incorrect coding result for P1, positive.", lsensor.classOf(Frame.P0, Frame.P1), equalTo("coding"));
-        assertThat("Incorrect coding result for P0, positive.", lsensor.classOf(Frame.P0, Frame.P0), equalTo("coding"));
-        assertThat("Incorrect normalize for M2, positive.", lsensor.normalize(Frame.M2), equalTo(Frame.F0));
-        assertThat("Incorrect normalize for M1, positive.", lsensor.normalize(Frame.M1), equalTo(Frame.F0));
-        assertThat("Incorrect normalize for M0, positive.", lsensor.normalize(Frame.M0), equalTo(Frame.F0));
-        assertThat("Incorrect normalize for F0, positive.", lsensor.normalize(Frame.F0), equalTo(Frame.F0));
-        assertThat("Incorrect normalize for P2, positive.", lsensor.normalize(Frame.P2), equalTo(Frame.P2));
-        assertThat("Incorrect normalize for P1, positive.", lsensor.normalize(Frame.P1), equalTo(Frame.P1));
-        assertThat("Incorrect normalize for P0, positive.", lsensor.normalize(Frame.P0), equalTo(Frame.P0));
-        assertThat("Incorrect normalize for XX, positive.", lsensor.normalize(Frame.XX), equalTo(Frame.XX));
-        assertNull("Incorrect coding result for XX, positive.", lsensor.classOf(Frame.P0, Frame.XX));
+        lsensor.setLocs(newList);
+        assertNull(lsensor.classOf(150));
+        assertThat(lsensor.classOf(4102), equalTo("coding"));
+        assertThat(lsensor.classOf(6050), equalTo("space"));
+        assertThat(lsensor.classOf(8000), equalTo("coding"));
+        assertThat(lsensor.classOf(9999), equalTo("space"));
+        assertThat(lsensor.classOf(9392), equalTo("space"));
         lsensor = LocationClass.scheme(LocationClass.Type.PHASE, true);
-        assertThat("Incorrect coding result for M2, negative.", lsensor.classOf(Frame.P0, Frame.M2), equalTo("-3"));
-        assertThat("Incorrect coding result for M1, negative.", lsensor.classOf(Frame.P0, Frame.M1), equalTo("-2"));
-        assertThat("Incorrect coding result for M0, negative.", lsensor.classOf(Frame.P0, Frame.M0), equalTo("-1"));
-        assertThat("Incorrect coding result for F0, negative.", lsensor.classOf(Frame.P0, Frame.F0), equalTo("0"));
-        assertThat("Incorrect coding result for P2, negative.", lsensor.classOf(Frame.P0, Frame.P2), equalTo("+3"));
-        assertThat("Incorrect coding result for P1, negative.", lsensor.classOf(Frame.P0, Frame.P1), equalTo("+2"));
-        assertThat("Incorrect coding result for P0, negative.", lsensor.classOf(Frame.P0, Frame.P0), equalTo("+1"));
-        assertNull("Incorrect coding result for XX, negative.", lsensor.classOf(Frame.P0, Frame.XX));
+        lsensor.setLocs(newList);
+        assertNull(lsensor.classOf(150));
+        assertThat(lsensor.classOf(4102), equalTo("+1"));
+        assertThat(lsensor.classOf(6050), equalTo("-3"));
+        assertThat(lsensor.classOf(8000), equalTo("+1"));
+        assertThat(lsensor.classOf(9999), equalTo("-1"));
+        assertThat(lsensor.classOf(9392), equalTo("0"));
         lsensor = LocationClass.scheme(LocationClass.Type.PHASE, false);
-        assertThat("Incorrect coding result for M2, positive.", lsensor.classOf(Frame.P0, Frame.M2), equalTo("0"));
-        assertThat("Incorrect coding result for M1, positive.", lsensor.classOf(Frame.P0, Frame.M1), equalTo("0"));
-        assertThat("Incorrect coding result for M0, positive.", lsensor.classOf(Frame.P0, Frame.M0), equalTo("0"));
-        assertThat("Incorrect coding result for F0, positive.", lsensor.classOf(Frame.P0, Frame.F0), equalTo("0"));
-        assertThat("Incorrect coding result for P2, positive.", lsensor.classOf(Frame.P0, Frame.P2), equalTo("+3"));
-        assertThat("Incorrect coding result for P1, positive.", lsensor.classOf(Frame.P0, Frame.P1), equalTo("+2"));
-        assertThat("Incorrect coding result for P0, positive.", lsensor.classOf(Frame.P0, Frame.P0), equalTo("+1"));
-           assertNull("Incorrect coding result for XX, positive.", lsensor.classOf(Frame.P0, Frame.XX));
-               try {
-            lsensor = LocationClass.scheme(LocationClass.Type.EDGE, true);
-            fail("Invalid combination passed.");
-        } catch (IllegalArgumentException e) { }
+        lsensor.setLocs(newList);
+        assertNull(lsensor.classOf(150));
+        assertThat(lsensor.classOf(4102), equalTo("+1"));
+        assertThat(lsensor.classOf(6050), equalTo("0"));
+        assertThat(lsensor.classOf(8000), equalTo("+1"));
+        assertThat(lsensor.classOf(9999), equalTo("0"));
+        assertThat(lsensor.classOf(9392), equalTo("0"));
         lsensor = LocationClass.scheme(LocationClass.Type.EDGE, false);
-        assertThat("Incorrect coding result for M2, positive.", lsensor.classOf(Frame.F0, Frame.M2), equalTo("other"));
-        assertThat("Incorrect coding result for M1, positive.", lsensor.classOf(Frame.M2, Frame.M1), equalTo("other"));
-        assertThat("Incorrect coding result for M0, positive.", lsensor.classOf(Frame.M1, Frame.M0), equalTo("other"));
-        assertThat("Incorrect coding result for M0/M2, positive.", lsensor.classOf(Frame.M0, Frame.M2), equalTo("other"));
-        assertThat("Incorrect coding result for M0/F0, positive.", lsensor.classOf(Frame.M0, Frame.F0), equalTo("other"));
-        assertThat("Incorrect coding result for P0, positive.", lsensor.classOf(Frame.F0, Frame.P0), equalTo("start"));
-        assertThat("Incorrect coding result for P1, positive.", lsensor.classOf(Frame.P0, Frame.P1), equalTo("other"));
-        assertThat("Incorrect coding result for P2, positive.", lsensor.classOf(Frame.P1, Frame.P2), equalTo("other"));
-        assertThat("Incorrect coding result for P2/P0, positive.", lsensor.classOf(Frame.P2, Frame.P0), equalTo("other"));
-        assertThat("Incorrect coding result for P2/F0, positive.", lsensor.classOf(Frame.P2, Frame.F0), equalTo("stop"));
-        assertNull("Incorrect coding result for XX, positive.", lsensor.classOf(Frame.P0, Frame.XX));
-
+        lsensor.setLocs(newList);
+        assertThat(lsensor.classOf(150), equalTo("other"));
+        assertThat(lsensor.classOf(9999), equalTo("other"));
+        assertThat(lsensor.classOf(8000), equalTo("start"));
+        assertThat(lsensor.classOf(8600), equalTo("stop"));
+        assertThat(lsensor.classOf(9499), equalTo("other"));
+        lsensor = LocationClass.scheme(LocationClass.Type.EDGE, true);
+        lsensor.setLocs(newList);
+        assertThat(lsensor.classOf(150), equalTo("other"));
+        assertThat(lsensor.classOf(9999), equalTo("start"));
+        assertThat(lsensor.classOf(8000), equalTo("start"));
+        assertThat(lsensor.classOf(8600), equalTo("stop"));
+        assertThat(lsensor.classOf(9499), equalTo("stop"));
     }
 }

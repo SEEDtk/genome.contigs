@@ -4,6 +4,7 @@
 package org.theseed.genome.contigs;
 
 import org.theseed.locations.Frame;
+import org.theseed.locations.LocationList;
 
 /**
  * This is the base class for location classifiers.  It computes the class of a location
@@ -19,6 +20,8 @@ public abstract class LocationClass {
     // FIELDS
     /** If TRUE, then minus-strand proteins are considered coding regions */
     boolean	negative;
+    /** controlling location list */
+    LocationList contigLocs;
 
 
     /**
@@ -28,30 +31,16 @@ public abstract class LocationClass {
      */
     public LocationClass(boolean negativeFlag) {
         this.negative = negativeFlag;
+        this.contigLocs = null;
     }
 
     /**
-     * Return the location class.  This method prepares the inputs and asks the
-     * subclass for the result.  A return of NULL means the current location
+     * Return the location class.  A return of NULL means the current location
      * is invalid.
      *
-     * @param prevFrame		the frame of the previous location
-     * @param thisFrame		the frame of the current location
+     * @param pos	position of the location whose class is desired
      */
-    public String classOf(Frame prevFrame, Frame thisFrame) {
-        String retVal = null;
-        if (thisFrame != Frame.XX)
-            retVal = computeClass(normalize(prevFrame), normalize(thisFrame));
-        return retVal;
-    }
-
-    /**
-     * @return the class for a specified location
-     *
-     * @param prevFrame	normalized frame of previous location
-     * @param thisFrame	normalized frame of this location
-     */
-    protected abstract String computeClass(Frame prevFrame, Frame thisFrame);
+    public abstract String classOf(int pos);
 
     /**
      * Convert a frame according to the policy on the minus strand.  This
@@ -95,6 +84,11 @@ public abstract class LocationClass {
         return retVal;
     }
 
+    /** Store the controlling location list */
+    public void setLocs(LocationList contigLocs) {
+        this.contigLocs = contigLocs;
+    }
+
     // SUBCLASSES
 
     /**
@@ -107,8 +101,12 @@ public abstract class LocationClass {
         }
 
         @Override
-        protected String computeClass(Frame prevFrame, Frame thisFrame) {
-            return thisFrame.toString();
+        public String classOf(int pos) {
+            String retVal = null;
+            Frame frm = this.contigLocs.computeRegionFrame(pos, pos);
+            if (frm != Frame.XX)
+                retVal = this.normalize(frm).toString();
+            return retVal;
         }
 
     }
@@ -120,19 +118,14 @@ public abstract class LocationClass {
 
         public Edge(boolean negativeFlag) {
             super(negativeFlag);
-            if (this.negative)
-                throw new IllegalArgumentException("Cannot use edge mode with the negative strand turned on.");
         }
 
         @Override
-        protected String computeClass(Frame prevFrame, Frame thisFrame) {
-            String retVal = "other";
-            if (thisFrame == Frame.P0 && prevFrame == Frame.F0)
-                retVal = "start";
-            else if (prevFrame == Frame.P2 && thisFrame == Frame.F0)
-                retVal = "stop";
-            return retVal;
+        public String classOf(int pos) {
+            LocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
+            return type.toString();
         }
+
 
     }
 
@@ -146,8 +139,21 @@ public abstract class LocationClass {
         }
 
         @Override
-        protected String computeClass(Frame prevFrame, Frame thisFrame) {
-            return (thisFrame != Frame.F0 ? "coding" : "space");
+        public String classOf(int pos) {
+            Frame frm = this.contigLocs.computeRegionFrame(pos, pos);
+            frm = this.normalize(frm);
+            String retVal;
+            switch (frm) {
+            case XX :
+                retVal = null;
+                break;
+            case F0 :
+                retVal = "space";
+                break;
+            default:
+                retVal = "coding";
+            }
+            return retVal;
         }
 
     }

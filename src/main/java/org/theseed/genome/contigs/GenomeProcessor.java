@@ -15,7 +15,6 @@ import org.kohsuke.args4j.Option;
 import org.theseed.counters.CountMap;
 import org.theseed.genomes.Contig;
 import org.theseed.genomes.Genome;
-import org.theseed.locations.Frame;
 import org.theseed.locations.LocationList;
 import org.theseed.utils.ICommand;
 
@@ -132,18 +131,14 @@ public class GenomeProcessor implements ICommand {
             Map<String, LocationList> codingMap = LocationList.createGenomeCodingMap(genome);
             for (Contig contig : genome.getContigs()) {
                 if (debug) System.err.println("Processing contig " + contig.getId());
-                // Get this contig's location list.
-                LocationList framer = codingMap.get(contig.getId());
+                // Activate this contig's location list.
+                lsensor.setLocs(codingMap.get(contig.getId()));
                 // Loop through the base pairs, generating data.
                 int limit = contig.length();
-                // This tracks the previous frame.
-                Frame prevFrame = Frame.P0;
                 // Loop through the contig.
                 for (int pos = 1; pos <= limit; pos++) {
-                    Frame thisFrame = framer.computeRegionFrame(pos, pos);
-                    // Compute this location's expected value. If the expectation
-                    // is unknown, we use a question mark.
-                    String expect = lsensor.classOf(prevFrame, thisFrame);
+                    // Compute this location's expected value. Invalid values are converted to question marks.
+                    String expect = lsensor.classOf(pos);
                     if (expect == null) expect = "?";
                     classCounts.count(expect);
                     // Compute this location's sensor values.
@@ -151,8 +146,6 @@ public class GenomeProcessor implements ICommand {
                     // Write it all out.
                     System.out.format("%s\t%s\t%s%n", proposal.getMeta(),
                             expect, proposal.toString());
-                    // Set up for the next iteration.
-                    prevFrame = thisFrame;
                 }
             }
             if (this.debug) for (CountMap<String>.Count count : classCounts.sortedCounts()) {

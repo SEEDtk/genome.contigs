@@ -17,7 +17,6 @@ import org.theseed.counters.CountMap;
 import org.theseed.genomes.Contig;
 import org.theseed.genomes.Genome;
 import org.theseed.genomes.GenomeDirectory;
-import org.theseed.locations.Frame;
 import org.theseed.locations.LocationList;
 import org.theseed.utils.ICommand;
 
@@ -205,6 +204,8 @@ public class ContigProcessor implements ICommand {
      * @param lsensor 	classification scheme for locations
      */
     private void ProcessContig(Contig contig, LocationList framer, LocationClass lsensor) {
+        // Activate the contig.
+        lsensor.setLocs(framer);
         // Run through the contig in 50,000 base-pair chunks, choosing random locations
         // to output.
         int limit = contig.length();
@@ -217,19 +218,13 @@ public class ContigProcessor implements ICommand {
             int start = rand.nextInt(end - pos) + pos;
             // This will count the number of valid positions output.
             int count = 0;
-            // This tracks the previous frame.
-            Frame prevFrame = Frame.P0;
             // Loop through the contig locations.
             while (start <= limit && count < this.runLength) {
-                // Get the coding frame. That's our first output column.
-                Frame thisFrame = framer.computeRegionFrame(start, start);
-                // Try to output this position.  We only output non-suspicious positions for
-                // valid frames.
-                if (thisFrame != Frame.XX) {
-                    ContigSensor proposal = this.factory.create(contig.getId(), start, contig.getSequence());
-                    if (! proposal.isSuspicious()) {
-                        // Compute the frame string.
-                        String frame = lsensor.classOf(prevFrame, thisFrame);
+                ContigSensor proposal = this.factory.create(contig.getId(), start, contig.getSequence());
+                if (! proposal.isSuspicious()) {
+                    // Compute the frame string.
+                    String frame = lsensor.classOf(start);
+                    if (frame != null) {
                         // Write the frame followed by the sensor data.
                         System.out.format("%s\t%s%n", frame, proposal.toString());
                         // Record the output.
@@ -239,7 +234,6 @@ public class ContigProcessor implements ICommand {
                 }
                 // Move to the next position.
                 start++;
-                prevFrame = thisFrame;
             }
             pos = (start >= end ? start + 1 : end);
             end = pos + this.chunkSize;
