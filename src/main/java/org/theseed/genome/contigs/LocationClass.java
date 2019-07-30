@@ -16,140 +16,141 @@ import org.theseed.locations.Frame;
  */
 public abstract class LocationClass {
 
-	// FIELDS
-	/** If TRUE, then minus-strand proteins are considered coding regions */
-	boolean	negative;
+    // FIELDS
+    /** If TRUE, then minus-strand proteins are considered coding regions */
+    boolean	negative;
 
-	/**
-	 * Construct a blank location class handler.
-	 *
-	 * @param negativeFlag	TRUE if minus-strand proteins are considered coding regions
-	 */
-	public LocationClass(boolean negativeFlag) {
-		this.negative = negativeFlag;
-	}
 
-	/**
-	 * Return the location class.  This method prepares the inputs and asks the
-	 * subclass for the result.  A return of NULL means the current location
-	 * is invalid.
-	 *
-	 * @param prevFrame		the frame of the previous location
-	 * @param thisFrame		the frame of the current location
-	 */
-	public String classOf(Frame prevFrame, Frame thisFrame) {
-		String retVal = null;
-		if (thisFrame != Frame.XX)
-			retVal = computeClass(normalize(prevFrame), normalize(thisFrame));
-		return retVal;
-	}
+    /**
+     * Construct a blank location class handler.
+     *
+     * @param negativeFlag	TRUE if minus-strand proteins are considered coding regions
+     */
+    public LocationClass(boolean negativeFlag) {
+        this.negative = negativeFlag;
+    }
 
-	/**
-	 * @return the class for a specified location
-	 *
-	 * @param prevFrame	normalized frame of previous location
-	 * @param thisFrame	normalized frame of this location
-	 */
-	protected abstract String computeClass(Frame prevFrame, Frame thisFrame);
+    /**
+     * Return the location class.  This method prepares the inputs and asks the
+     * subclass for the result.  A return of NULL means the current location
+     * is invalid.
+     *
+     * @param prevFrame		the frame of the previous location
+     * @param thisFrame		the frame of the current location
+     */
+    public String classOf(Frame prevFrame, Frame thisFrame) {
+        String retVal = null;
+        if (thisFrame != Frame.XX)
+            retVal = computeClass(normalize(prevFrame), normalize(thisFrame));
+        return retVal;
+    }
 
-	/**
-	 * Convert a frame according to the policy on the minus strand.  This
-	 * will either return the original frame or Frame.F0.
-	 *
-	 * @param frm	frame in question
-	 */
-	public Frame normalize(Frame frm) {
-		Frame retVal = frm;
-		if (! this.negative && frm.negative()) {
-			retVal = Frame.F0;
-		}
-		return retVal;
-	}
+    /**
+     * @return the class for a specified location
+     *
+     * @param prevFrame	normalized frame of previous location
+     * @param thisFrame	normalized frame of this location
+     */
+    protected abstract String computeClass(Frame prevFrame, Frame thisFrame);
 
-	/** enum used to choose a location class scheme */
-	public static enum Type {
-		/** identify "coding" or "space" (non-coding) locations */
-		CODING,
-		/** identify "start" (start of coding), "stop" (past end of coding), or "other" locations */
-		EDGE,
-		/** identify actual coding frame */
-		PHASE
-	}
+    /**
+     * Convert a frame according to the policy on the minus strand.  This
+     * will either return the original frame or Frame.F0.
+     *
+     * @param frm	frame in question
+     */
+    public Frame normalize(Frame frm) {
+        Frame retVal = frm;
+        if (! this.negative && frm.negative()) {
+            retVal = Frame.F0;
+        }
+        return retVal;
+    }
 
-	public static LocationClass scheme(Type type, boolean negativeFlag) {
-		LocationClass retVal;
-		switch (type) {
-		case CODING :
-			retVal = new LocationClass.Coding(negativeFlag);
-			break;
-		case EDGE :
-			retVal = new LocationClass.Edge(negativeFlag);
-			break;
-		case PHASE :
-			retVal = new LocationClass.Phase(negativeFlag);
-			break;
-		default :
-			retVal = null;
-		}
-		return retVal;
-	}
+    /** enum used to choose a location class scheme */
+    public static enum Type {
+        /** identify "coding" or "space" (non-coding) locations */
+        CODING,
+        /** identify "start" (start of coding), "stop" (past end of coding), or "other" locations */
+        EDGE,
+        /** identify actual coding frame */
+        PHASE
+    }
 
-	// SUBCLASSES
+    public static LocationClass scheme(Type type, boolean negativeFlag) {
+        LocationClass retVal;
+        switch (type) {
+        case CODING :
+            retVal = new LocationClass.Coding(negativeFlag);
+            break;
+        case EDGE :
+            retVal = new LocationClass.Edge(negativeFlag);
+            break;
+        case PHASE :
+            retVal = new LocationClass.Phase(negativeFlag);
+            break;
+        default :
+            retVal = null;
+        }
+        return retVal;
+    }
 
-	/**
-	 * Classification is the actual coding frame string (+1, +2, +3, 0)
-	 */
-	public static class Phase extends LocationClass {
+    // SUBCLASSES
 
-		public Phase(boolean negativeFlag) {
-			super(negativeFlag);
-		}
+    /**
+     * Classification is the actual coding frame string (+1, +2, +3, 0)
+     */
+    public static class Phase extends LocationClass {
 
-		@Override
-		protected String computeClass(Frame prevFrame, Frame thisFrame) {
-			return thisFrame.toString();
-		}
+        public Phase(boolean negativeFlag) {
+            super(negativeFlag);
+        }
 
-	}
+        @Override
+        protected String computeClass(Frame prevFrame, Frame thisFrame) {
+            return thisFrame.toString();
+        }
 
-	/**
-	 * Classification is "start", "stop", or "other".
-	 */
-	public static class Edge extends LocationClass {
+    }
 
-		public Edge(boolean negativeFlag) {
-			super(negativeFlag);
-			if (this.negative)
-				throw new IllegalArgumentException("Cannot use edge mode with the negative strand turned on.");
-		}
+    /**
+     * Classification is "start", "stop", or "other".
+     */
+    public static class Edge extends LocationClass {
 
-		@Override
-		protected String computeClass(Frame prevFrame, Frame thisFrame) {
-			String retVal = "other";
-			if (thisFrame == Frame.P0 && prevFrame == Frame.F0)
-				retVal = "start";
-			else if (prevFrame == Frame.P2 && thisFrame == Frame.F0)
-				retVal = "stop";
-			return retVal;
-		}
+        public Edge(boolean negativeFlag) {
+            super(negativeFlag);
+            if (this.negative)
+                throw new IllegalArgumentException("Cannot use edge mode with the negative strand turned on.");
+        }
 
-	}
+        @Override
+        protected String computeClass(Frame prevFrame, Frame thisFrame) {
+            String retVal = "other";
+            if (thisFrame == Frame.P0 && prevFrame == Frame.F0)
+                retVal = "start";
+            else if (prevFrame == Frame.P2 && thisFrame == Frame.F0)
+                retVal = "stop";
+            return retVal;
+        }
 
-	/**
-	 * Classification is "coding" or "space".
-	 */
-	public static class Coding extends LocationClass {
+    }
 
-		public Coding(boolean negativeFlag) {
-			super(negativeFlag);
-		}
+    /**
+     * Classification is "coding" or "space".
+     */
+    public static class Coding extends LocationClass {
 
-		@Override
-		protected String computeClass(Frame prevFrame, Frame thisFrame) {
-			return (thisFrame != Frame.F0 ? "coding" : "space");
-		}
+        public Coding(boolean negativeFlag) {
+            super(negativeFlag);
+        }
 
-	}
+        @Override
+        protected String computeClass(Frame prevFrame, Frame thisFrame) {
+            return (thisFrame != Frame.F0 ? "coding" : "space");
+        }
+
+    }
 
 
 }

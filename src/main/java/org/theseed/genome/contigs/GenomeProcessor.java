@@ -12,6 +12,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.theseed.counters.CountMap;
 import org.theseed.genomes.Contig;
 import org.theseed.genomes.Genome;
 import org.theseed.locations.Frame;
@@ -125,6 +126,8 @@ public class GenomeProcessor implements ICommand {
             // Create the output header.  The first column is the
             // location, then the expection,  and finally the sensors.
             System.out.println("location\texpect\t" + this.factory.sensor_headers());
+            // We use this to count the output classes.
+            CountMap<String> classCounts = new CountMap<String>();
             // Get the genome's contig map.
             Map<String, LocationList> codingMap = LocationList.createGenomeCodingMap(genome);
             for (Contig contig : genome.getContigs()) {
@@ -142,6 +145,7 @@ public class GenomeProcessor implements ICommand {
                     // is unknown, we use a question mark.
                     String expect = lsensor.classOf(prevFrame, thisFrame);
                     if (expect == null) expect = "?";
+                    classCounts.count(expect);
                     // Compute this location's sensor values.
                     ContigSensor proposal = this.factory.create(contig.getId(), pos, contig.getSequence());
                     // Write it all out.
@@ -150,6 +154,9 @@ public class GenomeProcessor implements ICommand {
                     // Set up for the next iteration.
                     prevFrame = thisFrame;
                 }
+            }
+            if (this.debug) for (CountMap<String>.Count count : classCounts.sortedCounts()) {
+                System.err.format("%20d written of type %s%n", count.getCount(), count.getKey());
             }
    } catch (NumberFormatException | IOException e) {
             System.err.println("Error processing " + genomeFile + ": " +
