@@ -38,14 +38,19 @@ import org.theseed.utils.ICommand;
  * 		the contig this size or greater; the default is 90000
  * -n	normally, only plus-strand locations are considered coding regions; if this is
  * 		specified, minus-strand locations are included as well
+ * -f	filter on known edge codons
  *
  * --type		type of classification to do; the values are
  *    	coding	outputs a class of "coding" for a frame in a coding region and
  * 				"space" for a frame not in a coding region; the default is to
  * 				output the actual frame label
  * 		edge	outputs a class of "start" for the first base pair of a coding region,
- * 				"stop" for the last base pair of a coding region, and "space" for
+ * 				"stop" for the last base pair of a coding region, and "other" for
  * 				everything else (this is the default)
+ * 		start	outputs a class of "start" for the first base pair of a coding region,
+ * 				and "other" for everything else
+ * 		stop	outputs a class of "stop" for the first base pair past the end of a coding region,
+ * 				and "other" for everything else
  * 		phase	outputs a class of "0" for a non-coding region, "+1" for the first
  * 				base pair of a codon, "+2" for the second, and "+3" for the third
  *
@@ -84,6 +89,10 @@ public class ContigProcessor implements ICommand {
     private void setWidth(int newWidth) {
         ContigSensorFactory.setHalfWidth(newWidth);
     }
+
+    /** filter for edge codons */
+    @Option(name="-f", aliases={"--edgeFilter"}, usage="filter for known edge codons")
+    private boolean edgeFilter;
 
     /** run length for output */
     @Option(name="-r", aliases={"--run"}, metaVar="200", usage="length of an output run per contig")
@@ -133,6 +142,7 @@ public class ContigProcessor implements ICommand {
         this.chunkSize = 90000;
         this.negative = false;
         this.classType = LocationClass.Type.EDGE;
+        this.edgeFilter = false;
         this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.CHANNEL);
         CmdLineParser parser = new CmdLineParser(this);
         try {
@@ -165,6 +175,10 @@ public class ContigProcessor implements ICommand {
         // Initialize the private data.
         this.classCounter = new CountMap<String>();
         LocationClass lsensor = LocationClass.scheme(this.classType, this.negative);
+        // Set up the edge filter.
+        CodonFilter filter = null;
+        if (this.edgeFilter)
+            filter = new CodonFilter("ATG", "GTG", "TTG", "TAA", "TAG", "TGA");
         // The first job is to create the output header.  The first column is the
         // frame and the remaining columns are sensors.
         System.out.println("frame\t" + this.factory.sensor_headers());
@@ -179,7 +193,7 @@ public class ContigProcessor implements ICommand {
                     // Create this genome's coding map.
                     Map<String, LocationList> codingMap = LocationList.createGenomeCodingMap(genome);
                     for (Contig contig : genome.getContigs()) {
-                        ProcessContig(contig, codingMap.get(contig.getId()), lsensor);
+                        ProcessContig(contig, codingMap.get(contig.getId()), lsensor, filter);
                     }
                 }
             }
@@ -202,12 +216,12 @@ public class ContigProcessor implements ICommand {
      * @param contig	contig of interest
      * @param framer	location list used to compute frames
      * @param lsensor 	classification scheme for locations
+     * @param filter	optional codon filter
      */
-    private void ProcessContig(Contig contig, LocationList framer, LocationClass lsensor) {
+    private void ProcessContig(Contig contig, LocationList framer, LocationClass lsensor, CodonFilter filter) {
         // Activate the contig.
         lsensor.setLocs(framer);
-        // Run through the contig in 50,000 base-pair chunks, choosing random locations
-        // to output.
+        // Run through the contig in chunks, choosing random locations to output.
         int limit = contig.length();
         int pos = 1;
         int end = pos + this.chunkSize;
@@ -218,18 +232,22 @@ public class ContigProcessor implements ICommand {
             int start = rand.nextInt(end - pos) + pos;
             // This will count the number of valid positions output.
             int count = 0;
+            // Extract the contig sequence.
+            String sequence = contig.getSequence();
             // Loop through the contig locations.
             while (start <= limit && count < this.runLength) {
-                ContigSensor proposal = this.factory.create(contig.getId(), start, contig.getSequence());
-                if (! proposal.isSuspicious()) {
-                    // Compute the frame string.
-                    String frame = lsensor.classOf(start);
-                    if (frame != null) {
-                        // Write the frame followed by the sensor data.
-                        System.out.format("%s\t%s%n", frame, proposal.toString());
-                        // Record the output.
-                        count++;
-                        this.classCounter.count(frame);
+                if (filter == null || filter.matches(start, sequence)) {
+                    ContigSensor proposal = this.factory.create(contig.getId(), start, sequence);
+                    if (! proposal.isSuspicious()) {
+                        // Compute the frame string.
+                        String frame = lsensor.classOf(start);
+                        if (frame != null) {
+                            // Write the frame followed by the sensor data.
+                            System.out.format("%s\t%s%n", frame, proposal.toString());
+                            // Record the output.
+                            count++;
+                            this.classCounter.count(frame);
+                        }
                     }
                 }
                 // Move to the next position.

@@ -17,6 +17,7 @@ import org.theseed.locations.LocationList;
  */
 public abstract class LocationClass {
 
+
     // FIELDS
     /** If TRUE, then minus-strand proteins are considered coding regions */
     boolean	negative;
@@ -63,7 +64,11 @@ public abstract class LocationClass {
         /** identify "start" (start of coding), "stop" (past end of coding), or "other" locations */
         EDGE,
         /** identify actual coding frame */
-        PHASE
+        PHASE,
+        /** identify "start" (start of coding) or "other" locations */
+        START,
+        /** identify "stop" (past end of coding) or "other" locations */
+        STOP
     }
 
     public static LocationClass scheme(Type type, boolean negativeFlag) {
@@ -77,6 +82,12 @@ public abstract class LocationClass {
             break;
         case PHASE :
             retVal = new LocationClass.Phase(negativeFlag);
+            break;
+        case START :
+            retVal = new LocationClass.Start(negativeFlag);
+            break;
+        case STOP :
+            retVal = new LocationClass.Stop(negativeFlag);
             break;
         default :
             retVal = null;
@@ -158,5 +169,38 @@ public abstract class LocationClass {
 
     }
 
+    /**
+     * Classification is "stop" or "other".
+     */
+    public static class Stop extends LocationClass {
+
+        public Stop(boolean negativeFlag) {
+            super(negativeFlag);
+        }
+
+        @Override
+        public String classOf(int pos) {
+            LocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
+            return (type == LocationList.Edge.STOP ? "stop" : "other");
+        }
+
+    }
+
+    /**
+     * Classification is "start" or "other".
+     */
+    public static class Start extends LocationClass {
+
+        public Start(boolean negativeFlag) {
+            super(negativeFlag);
+        }
+
+        @Override
+        public String classOf(int pos) {
+            LocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
+            return (type == LocationList.Edge.START ? "start" : "other");
+        }
+
+    }
 
 }

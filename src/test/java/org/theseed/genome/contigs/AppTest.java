@@ -178,5 +178,49 @@ public class AppTest
         assertThat(lsensor.classOf(8000), equalTo("start"));
         assertThat(lsensor.classOf(8600), equalTo("stop"));
         assertThat(lsensor.classOf(9499), equalTo("stop"));
+        lsensor = LocationClass.scheme(LocationClass.Type.START, false);
+        lsensor.setLocs(newList);
+        assertThat(lsensor.classOf(150), equalTo("other"));
+        assertThat(lsensor.classOf(9999), equalTo("other"));
+        assertThat(lsensor.classOf(8000), equalTo("start"));
+        assertThat(lsensor.classOf(8600), equalTo("other"));
+        assertThat(lsensor.classOf(9499), equalTo("other"));
+        lsensor = LocationClass.scheme(LocationClass.Type.START, true);
+        lsensor.setLocs(newList);
+        assertThat(lsensor.classOf(150), equalTo("other"));
+        assertThat(lsensor.classOf(9999), equalTo("start"));
+        assertThat(lsensor.classOf(8000), equalTo("start"));
+        assertThat(lsensor.classOf(8600), equalTo("other"));
+        assertThat(lsensor.classOf(9499), equalTo("other"));
+        lsensor = LocationClass.scheme(LocationClass.Type.STOP, false);
+        lsensor.setLocs(newList);
+        assertThat(lsensor.classOf(150), equalTo("other"));
+        assertThat(lsensor.classOf(9999), equalTo("other"));
+        assertThat(lsensor.classOf(8000), equalTo("other"));
+        assertThat(lsensor.classOf(8600), equalTo("stop"));
+        assertThat(lsensor.classOf(9499), equalTo("other"));
+        lsensor = LocationClass.scheme(LocationClass.Type.STOP, true);
+        lsensor.setLocs(newList);
+        assertThat(lsensor.classOf(150), equalTo("other"));
+        assertThat(lsensor.classOf(9999), equalTo("other"));
+        assertThat(lsensor.classOf(8000), equalTo("other"));
+        assertThat(lsensor.classOf(8600), equalTo("stop"));
+        assertThat(lsensor.classOf(9499), equalTo("stop"));
+    }
+
+    /**
+     * test codon filters
+     */
+    public void testCodonFilter() {
+        String sequence = "AATGTGACCTGAATAATAG";
+        CodonFilter filter = new CodonFilter("ATG", "AAT");
+        assertTrue(filter.matches(1, sequence));
+        assertTrue(filter.matches(2, sequence));
+        assertFalse(filter.matches(3, sequence));
+        assertFalse(filter.matches(4, sequence));
+        assertFalse(filter.matches(5, sequence));
+        assertFalse(filter.matches(6, sequence));
+        assertFalse(filter.matches(7, sequence));
+        assertTrue(filter.matches(12, sequence));
     }
 }

@@ -27,6 +27,7 @@ import org.theseed.utils.ICommand;
  * -w	the number of positions to look at on either side of a base pair; the default
  * 		is 14
  * -v	write progress messages to STDERR
+ * -f	filter for known edge codons
  *
  * --sensor		type of DNA sensor to use
  * 		direct	each base pair converts to a single number
@@ -61,6 +62,10 @@ public class FastaProcessor implements ICommand {
     /** debug switch */
     @Option(name="-v", aliases={"--verbose", "--debug"}, usage="write progress messages to STDERR")
     private boolean debug;
+
+    /** filter for edge codons */
+    @Option(name="-f", aliases={"--edgeFilter"}, usage="filter for known edge codons")
+    private boolean edgeFilter;
 
     /** sensor type */
     @Option(name="--sensor", metaVar="channel", usage="type of DNA sensor to use")
@@ -113,14 +118,23 @@ public class FastaProcessor implements ICommand {
             // Create the output header.  The first column is the metadata location, and the
             // remaining columns are sensors.
             System.out.println("Location\t" + this.factory.sensor_headers());
+            // Set up the codon filter.
+            CodonFilter filter = null;
+            if (this.edgeFilter)
+                filter = new CodonFilter("ATG", "GTG", "TTG", "TAA", "TAG", "TGA");
             // Now we loop through the sequences, producing output.
             for (File inFile : this.inFiles) {
                 if (debug) System.err.println("Processing file " + inFile + ".");
                 FastaInputStream inStream = new FastaInputStream(inFile);
                 for (Sequence inSeq : inStream) {
+                    int limit = inSeq.length();
+                    String sequence = inSeq.getSequence();
                     // For this sequence, output all the sensors.
-                    for (ContigSensor sensor : this.factory.processContig(inSeq)) {
-                        System.out.format("%s\t%s%n", sensor.getMeta(), sensor.toString());
+                    for (int pos = 1; pos <= limit; pos++) {
+                        if (filter == null || filter.matches(pos, sequence)) {
+                            ContigSensor sensor = this.factory.create(inSeq.getLabel(), pos, sequence);
+                            System.out.format("%s\t%s%n", sensor.getMeta(), sensor.toString());
+                        }
                     }
                 }
                 inStream.close();
