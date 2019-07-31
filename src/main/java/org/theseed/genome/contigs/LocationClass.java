@@ -71,6 +71,29 @@ public abstract class LocationClass {
         STOP
     }
 
+    /**
+     * @return the appropriate codon filter for the location class, or NULL if none is needed
+     *
+     * @param type	location class scheme
+     */
+    public static CodonFilter filter(Type type) {
+        CodonFilter retVal;
+        switch (type) {
+        case EDGE :
+            retVal = new CodonFilter("ATG", "GTG", "TTG", "TAA", "TAG", "TGA");
+            break;
+        case START :
+            retVal = new CodonFilter("ATG", "GTG", "TTG");
+            break;
+        case STOP :
+            retVal = new CodonFilter("TAA", "TAG", "TGA");
+            break;
+        default :
+            retVal = null;
+        }
+        return retVal;
+    }
+
     public static LocationClass scheme(Type type, boolean negativeFlag) {
         LocationClass retVal;
         switch (type) {

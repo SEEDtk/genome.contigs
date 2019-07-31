@@ -17,6 +17,7 @@ import org.theseed.counters.CountMap;
 import org.theseed.genomes.Contig;
 import org.theseed.genomes.Genome;
 import org.theseed.genomes.GenomeDirectory;
+import org.theseed.io.BalancedOutputStream;
 import org.theseed.locations.LocationList;
 import org.theseed.utils.ICommand;
 
@@ -39,6 +40,10 @@ import org.theseed.utils.ICommand;
  * -n	normally, only plus-strand locations are considered coding regions; if this is
  * 		specified, minus-strand locations are included as well
  * -f	filter on known edge codons
+ * -b	indicates the output should be balanced; the records are held in memory and then
+ * 		a distributed, balanced subset is output; the value should be a number from 1.0
+ * 		to 2.0, indicating the maximum number of output records per class as a fraction of
+ * 		the smallest class's size
  *
  * --type		type of classification to do; the values are
  *    	coding	outputs a class of "coding" for a frame in a coding region and
@@ -76,6 +81,8 @@ public class ContigProcessor implements ICommand {
     private CountMap<String> classCounter;
     /** factory object for creating contig sensors */
     private ContigSensorFactory factory;
+    /** data output stream */
+    private BalancedOutputStream outStream;
 
     // COMMAND-LINE OPTIONS
 
@@ -90,8 +97,12 @@ public class ContigProcessor implements ICommand {
         ContigSensorFactory.setHalfWidth(newWidth);
     }
 
+    /** balanced output fuzz factor */
+    @Option(name="-b", aliases={"--balance", "--fuzz"}, metaVar="1.2", usage="specify class-balanced output")
+    private double fuzzFactor;
+
     /** filter for edge codons */
-    @Option(name="-f", aliases={"--edgeFilter"}, usage="filter for known edge codons")
+    @Option(name="-f", aliases={"--edgeFilter"}, usage="codon filtering type")
     private boolean edgeFilter;
 
     /** run length for output */
@@ -143,6 +154,7 @@ public class ContigProcessor implements ICommand {
         this.negative = false;
         this.classType = LocationClass.Type.EDGE;
         this.edgeFilter = false;
+        this.fuzzFactor = 0;
         this.factory = ContigSensorFactory.create(ContigSensorFactory.Type.CHANNEL);
         CmdLineParser parser = new CmdLineParser(this);
         try {
@@ -155,6 +167,10 @@ public class ContigProcessor implements ICommand {
                     if (! genomeDir.isDirectory()) {
                         throw new FileNotFoundException(genomeDir.getPath() + " is not a valid directory.");
                     }
+                }
+                // Validate the fuzz factor.
+                if (this.fuzzFactor != 0 && (this.fuzzFactor < 1.0 || this.fuzzFactor > 2.0)) {
+                    throw new IllegalArgumentException("Balance factor must be 0 (off) or between 1.0 and 2.0 inclusive.");
                 }
                 retVal = true;
             }
@@ -175,13 +191,15 @@ public class ContigProcessor implements ICommand {
         // Initialize the private data.
         this.classCounter = new CountMap<String>();
         LocationClass lsensor = LocationClass.scheme(this.classType, this.negative);
+        // Create the output stream.
+        this.outStream = new BalancedOutputStream(this.fuzzFactor, System.out);
         // Set up the edge filter.
         CodonFilter filter = null;
         if (this.edgeFilter)
-            filter = new CodonFilter("ATG", "GTG", "TTG", "TAA", "TAG", "TGA");
+            filter = LocationClass.filter(this.classType);
         // The first job is to create the output header.  The first column is the
         // frame and the remaining columns are sensors.
-        System.out.println("frame\t" + this.factory.sensor_headers());
+        this.outStream.writeImmediate("frame", this.factory.sensor_headers());
         try {
             // Loop through the genome directories.
             for (File genomeDir : this.genomeDirs) {
@@ -197,6 +215,7 @@ public class ContigProcessor implements ICommand {
                     }
                 }
             }
+            this.outStream.close();
             if (debug) {
                 // Display counts for each frame, so we can see if we have well-distributed
                 // results.
@@ -208,6 +227,7 @@ public class ContigProcessor implements ICommand {
         } catch (IOException e) {
             System.err.println("Error processing genome directory: " + e.getMessage());
         }
+        // Close the output stream.  This is where the IO happens.
     }
 
     /**
@@ -243,7 +263,7 @@ public class ContigProcessor implements ICommand {
                         String frame = lsensor.classOf(start);
                         if (frame != null) {
                             // Write the frame followed by the sensor data.
-                            System.out.format("%s\t%s%n", frame, proposal.toString());
+                            this.outStream.write(frame, proposal.toString());
                             // Record the output.
                             count++;
                             this.classCounter.count(frame);

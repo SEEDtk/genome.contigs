@@ -135,7 +135,7 @@ public class GenomeProcessor implements ICommand {
             // Set up the optional codon filter.
             CodonFilter filter = null;
             if (this.edgeFilter)
-                filter = new CodonFilter("ATG", "GTG", "TTG", "TAA", "TAG", "TGA");
+                filter = LocationClass.filter(this.classType);
             // Create the output header.  The first column is the
             // location, then the expection,  and finally the sensors.
             System.out.println("location\texpect\t" + this.factory.sensor_headers());
