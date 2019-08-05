@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.theseed.genomes.Contig;
+import org.theseed.genome.Contig;
 import org.theseed.sequence.Sequence;
 
 /**

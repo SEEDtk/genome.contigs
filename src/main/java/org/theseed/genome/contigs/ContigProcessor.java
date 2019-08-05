@@ -14,9 +14,9 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.theseed.counters.CountMap;
-import org.theseed.genomes.Contig;
-import org.theseed.genomes.Genome;
-import org.theseed.genomes.GenomeDirectory;
+import org.theseed.genome.Contig;
+import org.theseed.genome.Genome;
+import org.theseed.genome.GenomeDirectory;
 import org.theseed.io.BalancedOutputStream;
 import org.theseed.locations.LocationList;
 import org.theseed.utils.ICommand;
@@ -102,7 +102,7 @@ public class ContigProcessor implements ICommand {
     private double fuzzFactor;
 
     /** filter for edge codons */
-    @Option(name="-f", aliases={"--edgeFilter"}, usage="codon filtering type")
+    @Option(name="-f", aliases={"--edgeFilter"}, usage="filter on codons of the appropriate type")
     private boolean edgeFilter;
 
     /** run length for output */
@@ -127,7 +127,7 @@ public class ContigProcessor implements ICommand {
     private LocationClass.Type classType;
 
     /** sensor type */
-    @Option(name="--sensor", metaVar="one_hot", usage="type of DNA sensor to use")
+    @Option(name="--sensor", metaVar="codon", usage="type of DNA sensor to use (default: CHANNEL)")
     private void setFactory(ContigSensorFactory.Type type) {
         this.factory = ContigSensorFactory.create(type);
     }

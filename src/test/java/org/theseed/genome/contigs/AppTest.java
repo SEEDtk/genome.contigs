@@ -9,7 +9,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 import java.util.List;
-import org.theseed.genomes.Contig;
+
+import org.theseed.genome.Contig;
 import org.theseed.locations.Frame;
 import org.theseed.locations.Location;
 import org.theseed.locations.LocationList;

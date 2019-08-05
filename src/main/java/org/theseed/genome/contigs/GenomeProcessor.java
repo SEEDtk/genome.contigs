@@ -13,8 +13,8 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.theseed.counters.CountMap;
-import org.theseed.genomes.Contig;
-import org.theseed.genomes.Genome;
+import org.theseed.genome.Contig;
+import org.theseed.genome.Genome;
 import org.theseed.locations.LocationList;
 import org.theseed.utils.ICommand;
 
