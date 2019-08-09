@@ -25,6 +25,8 @@ import org.theseed.utils.ICommand;
  * the expected value.  When the file is input to the model, its predictions
  * can be compared to the expected value in the metadata.
  *
+ * -w	the number of positions to look at on either side of a base pair; the default
+ * 		is 14
  * -v	write progress messages to STDERR
  * -n	normally, only plus-strand locations are considered coding regions; if this is
  * 		specified, minus-strand locations are included as well
@@ -75,6 +77,13 @@ public class GenomeProcessor implements ICommand {
     /** filter for edge codons */
     @Option(name="-f", aliases={"--edgeFilter"}, usage="filter for known edge codons")
     private boolean edgeFilter;
+
+    /** sensor width */
+    @Option(name="-w", aliases={"--width"}, metaVar="14",
+            usage="distance on either side for sensors")
+    private void setWidth(int newWidth) {
+        ContigSensorFactory.setHalfWidth(newWidth);
+    }
 
     /** negative-allowed flag */
     @Option(name="-n", aliases= {"--negative", "--minus"}, usage="include minus strand results")
