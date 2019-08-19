@@ -29,7 +29,7 @@ public class App
             processor = new GenomeProcessor();
             break;
         default :
-            throw new RuntimeException("Invalid command " + command + ": must be \"train\" or \"predict\".");
+            throw new RuntimeException("Invalid command " + command + ": must be \"train\", \"test\", or \"predict\".");
         }
         boolean ok = processor.parseCommand(newArgs);
         if (ok) {

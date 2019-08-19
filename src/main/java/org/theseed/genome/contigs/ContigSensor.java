@@ -30,17 +30,21 @@ public class ContigSensor {
     String[] sensors;
     /** TRUE if this sensor includes ambiguity characters */
     boolean suspicious;
+    /** codon at this sensor position */
+    private String codon;
 
     /**
      * Construct a contig sensor for a specified position on a contig.
      *
      * @param id	ID of the contig
      * @param pos	position of the sensor
+     * @oaran codon	codon at the current position
      */
-    public ContigSensor(String id, int pos) {
+    public ContigSensor(String id, int pos, String codon) {
         this.contigId = id;
         this.position = pos;
         this.suspicious = false;
+        this.codon = codon;
     }
 
     /**
@@ -109,6 +113,13 @@ public class ContigSensor {
      */
     public Object getSensorWidth() {
         return this.sensors.length;
+    }
+
+    /**
+     * @return the codon represented by this sensor
+     */
+    public String getCodon() {
+        return this.codon;
     }
 
 

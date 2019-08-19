@@ -115,9 +115,9 @@ public class FastaProcessor implements ICommand {
     @Override
     public void run() {
         try {
-            // Create the output header.  The first column is the metadata location, and the
-            // remaining columns are sensors.
-            System.out.println("Location\t" + this.factory.sensor_headers());
+            // Create the output header.  The first column is the metadata location, the second
+            // is the codon itself (also metadata) and the remaining columns are sensors.
+            System.out.println("Location\tCodon\t" + this.factory.sensor_headers());
             // Set up the codon filter.
             CodonFilter filter = null;
             if (this.edgeFilter)
@@ -133,7 +133,8 @@ public class FastaProcessor implements ICommand {
                     for (int pos = 1; pos <= limit; pos++) {
                         if (filter == null || filter.matches(pos, sequence)) {
                             ContigSensor sensor = this.factory.create(inSeq.getLabel(), pos, sequence);
-                            System.out.format("%s\t%s%n", sensor.getMeta(), sensor.toString());
+                            System.out.format("%s\t%s\t%s%n", sensor.getMeta(), sensor.getCodon(),
+                                    sensor.toString());
                         }
                     }
                 }

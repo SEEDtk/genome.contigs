@@ -147,7 +147,7 @@ public class GenomeProcessor implements ICommand {
                 filter = LocationClass.filter(this.classType);
             // Create the output header.  The first column is the
             // location, then the expection,  and finally the sensors.
-            System.out.println("location\texpect\t" + this.factory.sensor_headers());
+            System.out.println("location\tcodon\texpect\t" + this.factory.sensor_headers());
             // We use this to count the output classes.
             CountMap<String> classCounts = new CountMap<String>();
             // Get the genome's contig map.
@@ -170,7 +170,7 @@ public class GenomeProcessor implements ICommand {
                         // Compute this location's sensor values.
                         ContigSensor proposal = this.factory.create(contig.getId(), pos, sequence);
                         // Write it all out.
-                        System.out.format("%s\t%s\t%s%n", proposal.getMeta(),
+                        System.out.format("%s\t%s\t%s\t%s%n", proposal.getMeta(), proposal.getCodon(),
                                 expect, proposal.toString());
                     }
                 }

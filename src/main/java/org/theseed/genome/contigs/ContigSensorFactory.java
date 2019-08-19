@@ -85,7 +85,8 @@ public abstract class ContigSensorFactory {
      * @param sequence	DNA sequence from which the sensor is derived
      */
     public ContigSensor create(String id, int pos, String sequence) {
-        ContigSensor retVal = new ContigSensor(id, pos);
+        String codon = CodonFilter.getCodon(pos, sequence);
+        ContigSensor retVal = new ContigSensor(id, pos, codon);
         this.convertSequence(retVal, sequence, pos);
         return retVal;
     }

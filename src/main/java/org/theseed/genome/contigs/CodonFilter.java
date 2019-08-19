@@ -39,8 +39,18 @@ public class CodonFilter {
      * @param sequence	DNA sequence to check
      */
     public boolean matches(int pos, String sequence) {
-        String codon = StringUtils.substring(sequence, pos-1, pos+2).toUpperCase();
+        String codon = getCodon(pos, sequence);
         return this.codons.contains(codon);
+    }
+
+    /**
+     * @return codon at the current position in a sequence.
+     *
+     * @param pos		relevant position (1-based)
+     * @param sequence	sequence containing the codon
+     */
+    public static String getCodon(int pos, String sequence) {
+        return StringUtils.substring(sequence, pos-1, pos+2).toUpperCase();
     }
 
 }
