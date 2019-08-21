@@ -50,7 +50,8 @@ public class AppTest
     {
         String contigID = "3000.contig.1";
         Sequence frec = new Sequence(contigID, "", "AACGTCCTGAAGTC");
-        ContigSensorFactory.setHalfWidth(4);
+        ContigSensorFactory.setLeftWidth(4);
+        ContigSensorFactory.setRightWidth(4);
         ContigSensorFactory myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.DIRECT);
         assertThat("Wrong header", myFactory.sensor_headers(),
                 equalTo("pos.-4\tpos.-3\tpos.-2\tpos.-1\tpos.0\tpos.1\tpos.2\tpos.3\tpos.4"));
@@ -95,17 +96,44 @@ public class AppTest
         assertThat("Wrong contig ID for 10th", sensor11.getContigId(), equalTo(contigID));
         assertThat("Wrong position for 10th", sensor11.getPosition(), equalTo(11));
         myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.CODON);
-        ContigSensorFactory.setHalfWidth(4);
+        ContigSensorFactory.setLeftWidth(3);
+        ContigSensorFactory.setRightWidth(5);
+        assertThat(ContigSensorFactory.getFullWidth(), equalTo(9));
         assertThat("Wrong header", myFactory.sensor_headers(),
-                equalTo("pos.-4\tpos.-3\tpos.-2\tpos.-1\tpos.0\tpos.1\tpos.2\tpos.3\tpos.4"));
+                equalTo("pos.-3\tpos.0\tpos.3"));
         sensors = myFactory.processContig(frec);
         sensor1 = sensors.get(0);
         assertThat("Wrong contig ID for first sensor.", sensor1.getContigId(), equalTo(contigID));
         assertThat("Wrong position for first sensor.", sensor1.getPosition(), equalTo(1));
         assertThat("Wrong meta string for first sensor.", sensor1.getMeta(), equalTo(contigID + ";1"));
         assertThat("Wrong sensors for first", sensor1.getSensorList(),
-                contains("0.000", "0.000", "0.002", "0.022", "0.226", "0.268", "0.684", "0.846", "0.466"));
-        assertThat("Wrong string", sensor1.toString(), equalTo("0.000\t0.000\t0.002\t0.022\t0.226\t0.268\t0.684\t0.846\t0.466"));
+                contains("---", "aac", "gtc"));
+        assertThat("Wrong string", sensor1.toString(), equalTo("---\taac\tgtc"));
+        sensor1 = sensors.get(1);
+        assertThat("Wrong sensors for second", sensor1.getSensorList(),
+                contains("--a", "acg", "tcc"));
+        Sequence frec2 = new Sequence(contigID, "", "AACGTCCTRAAGTCA");
+        myFactory = ContigSensorFactory.create(ContigSensorFactory.Type.AMINOACID);
+        ContigSensorFactory.setLeftWidth(3);
+        ContigSensorFactory.setRightWidth(5);
+        assertThat(ContigSensorFactory.getFullWidth(), equalTo(9));
+        assertThat("Wrong header", myFactory.sensor_headers(),
+                equalTo("pos.-3\tpos.0\tpos.3"));
+        sensors = myFactory.processContig(frec2);
+        sensor1 = sensors.get(0);
+        assertThat("Wrong contig ID for first sensor.", sensor1.getContigId(), equalTo(contigID));
+        assertThat("Wrong position for first sensor.", sensor1.getPosition(), equalTo(1));
+        assertThat("Wrong meta string for first sensor.", sensor1.getMeta(), equalTo(contigID + ";1"));
+        assertThat("Wrong sensors for first", sensor1.getSensorList(),
+                contains("-", "N", "V"));
+        assertThat("Wrong string", sensor1.toString(), equalTo("-\tN\tV"));
+        sensor1 = sensors.get(1);
+        assertThat("Wrong sensors for second", sensor1.getSensorList(),
+                contains("-", "T", "S"));
+        sensor1 = sensors.get(3);
+        assertThat("Failure of suspicion", sensor1.getSensorList(),
+                contains("K", "S", "-"));
+
     }
 
     /*
@@ -170,43 +198,43 @@ public class AppTest
         assertThat(lsensor.classOf(150), equalTo("other"));
         assertThat(lsensor.classOf(9999), equalTo("other"));
         assertThat(lsensor.classOf(8000), equalTo("start"));
-        assertThat(lsensor.classOf(8600), equalTo("stop"));
+        assertThat(lsensor.classOf(8597), equalTo("stop"));
         assertThat(lsensor.classOf(9499), equalTo("other"));
         lsensor = LocationClass.scheme(LocationClass.Type.EDGE, true);
         lsensor.setLocs(newList);
         assertThat(lsensor.classOf(150), equalTo("other"));
         assertThat(lsensor.classOf(9999), equalTo("start"));
         assertThat(lsensor.classOf(8000), equalTo("start"));
-        assertThat(lsensor.classOf(8600), equalTo("stop"));
-        assertThat(lsensor.classOf(9499), equalTo("stop"));
+        assertThat(lsensor.classOf(8597), equalTo("stop"));
+        assertThat(lsensor.classOf(9502), equalTo("stop"));
         lsensor = LocationClass.scheme(LocationClass.Type.START, false);
         lsensor.setLocs(newList);
         assertThat(lsensor.classOf(150), equalTo("other"));
         assertThat(lsensor.classOf(9999), equalTo("other"));
         assertThat(lsensor.classOf(8000), equalTo("start"));
-        assertThat(lsensor.classOf(8600), equalTo("other"));
-        assertThat(lsensor.classOf(9499), equalTo("other"));
+        assertThat(lsensor.classOf(8597), equalTo("other"));
+        assertThat(lsensor.classOf(9502), equalTo("other"));
         lsensor = LocationClass.scheme(LocationClass.Type.START, true);
         lsensor.setLocs(newList);
         assertThat(lsensor.classOf(150), equalTo("other"));
         assertThat(lsensor.classOf(9999), equalTo("start"));
         assertThat(lsensor.classOf(8000), equalTo("start"));
-        assertThat(lsensor.classOf(8600), equalTo("other"));
-        assertThat(lsensor.classOf(9499), equalTo("other"));
+        assertThat(lsensor.classOf(8597), equalTo("other"));
+        assertThat(lsensor.classOf(9502), equalTo("other"));
         lsensor = LocationClass.scheme(LocationClass.Type.STOP, false);
         lsensor.setLocs(newList);
         assertThat(lsensor.classOf(150), equalTo("other"));
         assertThat(lsensor.classOf(9999), equalTo("other"));
         assertThat(lsensor.classOf(8000), equalTo("other"));
-        assertThat(lsensor.classOf(8600), equalTo("stop"));
-        assertThat(lsensor.classOf(9499), equalTo("other"));
+        assertThat(lsensor.classOf(8597), equalTo("stop"));
+        assertThat(lsensor.classOf(9502), equalTo("other"));
         lsensor = LocationClass.scheme(LocationClass.Type.STOP, true);
         lsensor.setLocs(newList);
         assertThat(lsensor.classOf(150), equalTo("other"));
         assertThat(lsensor.classOf(9999), equalTo("other"));
         assertThat(lsensor.classOf(8000), equalTo("other"));
-        assertThat(lsensor.classOf(8600), equalTo("stop"));
-        assertThat(lsensor.classOf(9499), equalTo("stop"));
+        assertThat(lsensor.classOf(8597), equalTo("stop"));
+        assertThat(lsensor.classOf(9502), equalTo("stop"));
     }
 
     /**

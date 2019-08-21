@@ -20,11 +20,12 @@ public abstract class ContigSensorFactory {
      * types of sensors currently supported
      */
     public static enum Type {
-        DIRECT, CHANNEL, CODON
+        DIRECT, CHANNEL, CODON, AMINOACID
     }
 
     /** global sensor width, to either side of the target position */
-    protected static int halfWidth = 14;
+    protected static int leftWidth = 21;
+    protected static int rightWidth = 45;
 
     /**
      * Construct a blank, empty sensor factory.
@@ -33,20 +34,44 @@ public abstract class ContigSensorFactory {
     }
 
     /**
-     * @return the number of sensors on each side of the target position
+     * @return the number of sensors on the left side of the target position
      */
-    public static int getHalfWidth() {
-        return halfWidth;
+    public static int getLeftWidth() {
+        return leftWidth;
     }
 
     /**
-     * Specify a new global half-width.  This does not affect sensors
+     * @return the number of sensors on the right side of the target position
+     */
+    public static int getRightWidth() {
+        return rightWidth;
+    }
+
+    /**
+     * @return the full width of a sensor
+     */
+    public static int getFullWidth() {
+        return leftWidth + rightWidth + 1;
+    }
+
+    /**
+     * Specify a new global left-width.  This does not affect sensors
      * already constructed.
      *
      * @param new sensor width
      */
-    public static void setHalfWidth(int newWidth) {
-        ContigSensorFactory.halfWidth = newWidth;
+    public static void setLeftWidth(int newWidth) {
+        ContigSensorFactory.leftWidth = newWidth;
+    }
+
+    /**
+     * Specify a new global right-width.  This does not affect sensors
+     * already constructed.
+     *
+     * @param new sensor width
+     */
+    public static void setRightWidth(int newWidth) {
+        ContigSensorFactory.rightWidth = newWidth;
     }
 
     /**
@@ -75,6 +100,13 @@ public abstract class ContigSensorFactory {
             if (! snapshot.suspicious) retVal.add(snapshot);
         }
         return retVal;
+    }
+
+    /**
+     * @return the stride between positions inside the sensor (normnally 1, sometimes 3)
+     */
+    protected int getStride() {
+        return 1;
     }
 
     /**
@@ -128,6 +160,9 @@ public abstract class ContigSensorFactory {
         case CODON :
             retVal = new CodonContigSensorFactory();
             break;
+        case AMINOACID :
+            retVal = new AminoAcidContigSensorFactory();
+            break;
         default :
             throw new IllegalArgumentException("Unknown contig factory type " + type + ".");
         }
@@ -138,10 +173,9 @@ public abstract class ContigSensorFactory {
      * @return the sensor column headers for this sensor type
      */
     public String sensor_headers() {
-        int halfWidth = ContigSensorFactory.getHalfWidth();
-        int fullWidth = halfWidth * 2 + 1;
-        ArrayList<String> headers = new ArrayList<String>(fullWidth);
-        for (int i = -halfWidth; i <= halfWidth; i++) {
+        ArrayList<String> headers = new ArrayList<String>(getFullWidth());
+        int stride = this.getStride();
+        for (int i = -getLeftWidth(); i <= getRightWidth(); i += stride) {
             headers.add("pos." + i);
         }
         return StringUtils.join(headers, '\t');

@@ -25,8 +25,8 @@ import org.theseed.utils.ICommand;
  * the expected value.  When the file is input to the model, its predictions
  * can be compared to the expected value in the metadata.
  *
- * -w	the number of positions to look at on either side of a base pair; the default
- * 		is 14
+ * -u	the number of positions to examine to the left (upstream) of the target position
+ * -d	the number of positions to examine to the right (downstream) of the target position
  * -v	write progress messages to STDERR
  * -n	normally, only plus-strand locations are considered coding regions; if this is
  * 		specified, minus-strand locations are included as well
@@ -48,10 +48,10 @@ import org.theseed.utils.ICommand;
  *
  * --sensor		type of DNA sensor to use
  * 		direct	each base pair converts to a single number
- * 		codon	each base pair converts to a number computed from the three base pairs beginning
- * 				at the current position
- * 		channel	each base pair is converted to a vector of the probabilities for each possible
- * 				nucleotide value (this is the default)
+ * 		codon	each trio of base pairs is converted to a string
+ * 		channel	each base pair is converted to a string indicating the base pair
+ * 		aminoacid
+ * 				each trio of base pairs is converted to its amino acid
  *
  * This positional parameter is the name of the GTO file containing the genome.
  *
@@ -78,11 +78,17 @@ public class GenomeProcessor implements ICommand {
     @Option(name="-f", aliases={"--edgeFilter"}, usage="filter for known edge codons")
     private boolean edgeFilter;
 
-    /** sensor width */
-    @Option(name="-w", aliases={"--width"}, metaVar="14",
-            usage="distance on either side for sensors")
-    private void setWidth(int newWidth) {
-        ContigSensorFactory.setHalfWidth(newWidth);
+
+    /** sensor width, upstream */
+    @Option(name="-u", aliases={"--upstream", "--left"}, metaVar="14", usage="upstream distance for sensors")
+    private void setLeftWidth(int newWidth) {
+        ContigSensorFactory.setLeftWidth(newWidth);
+    }
+
+    /** sensor width, downstream */
+    @Option(name="-d", aliases={"--downstream", "--right"}, metaVar="21", usage="downstream distance for sensors")
+    private void setRightWidth(int newWidth) {
+        ContigSensorFactory.setRightWidth(newWidth);
     }
 
     /** negative-allowed flag */

@@ -31,8 +31,6 @@ import org.theseed.utils.ICommand;
  *
  * The following command-line options are supported.
  *
- * -w	the number of positions to look at on either side of a base pair; the default
- * 		is 14
  * -r	the number of positions in a row to output; the default is 200
  * -v	write progress messages to STDERR
  * -k	chunk size for contigs; one output run will be produced for every piece of
@@ -44,6 +42,8 @@ import org.theseed.utils.ICommand;
  * 		a distributed, balanced subset is output; the value should be a number from 1.0
  * 		to 2.0, indicating the maximum number of output records per class as a fraction of
  * 		the smallest class's size
+ * -u	the number of positions to examine to the left (upstream) of the target position
+ * -d	the number of positions to examine to the right (downstream) of the target position
  *
  * --type		type of classification to do; the values are
  *    	coding	outputs a class of "coding" for a frame in a coding region and
@@ -61,10 +61,10 @@ import org.theseed.utils.ICommand;
  *
  * --sensor		type of DNA sensor to use
  * 		direct	each base pair converts to a single number
- * 		codon	each base pair converts to a number computed from the three base pairs beginning
- * 				at the current position
- * 		channel	each base pair is converted to a vector of the probabilities for each possible
- * 				nucleotide value (this is the default)
+ * 		codon	each trio of base pairs is converted to a string
+ * 		channel	each base pair is converted to a string indicating the base pair
+ * 		aminoacid
+ * 				each trio of base pairs is converted to its amino acid
  *
  * The positional parameters are the names of the input directories.
  *
@@ -90,11 +90,16 @@ public class ContigProcessor implements ICommand {
     @Option(name="-h", aliases={"--help"}, help=true)
     private boolean help;
 
-    /** sensor width */
-    @Option(name="-w", aliases={"--width"}, metaVar="14",
-            usage="distance on either side for sensors")
-    private void setWidth(int newWidth) {
-        ContigSensorFactory.setHalfWidth(newWidth);
+    /** sensor width, upstream */
+    @Option(name="-u", aliases={"--upstream", "--left"}, metaVar="14", usage="upstream distance for sensors")
+    private void setLeftWidth(int newWidth) {
+        ContigSensorFactory.setLeftWidth(newWidth);
+    }
+
+    /** sensor width, downstream */
+    @Option(name="-d", aliases={"--downstream", "--right"}, metaVar="21", usage="downstream distance for sensors")
+    private void setRightWidth(int newWidth) {
+        ContigSensorFactory.setRightWidth(newWidth);
     }
 
     /** balanced output fuzz factor */
