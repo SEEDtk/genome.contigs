@@ -27,7 +27,7 @@ import org.theseed.utils.ICommand;
  * -u	the number of positions to examine to the left (upstream) of the target position
  * -d	the number of positions to examine to the right (downstream) of the target position
  * -v	write progress messages to STDERR
- * -f	filter for known edge codons
+ * -f	filter for known stop codons (the default is to include starts and stops)
  *
  * --sensor		type of DNA sensor to use
  * 		direct	each base pair converts to a single number
@@ -70,7 +70,7 @@ public class FastaProcessor implements ICommand {
     private boolean debug;
 
     /** filter for edge codons */
-    @Option(name="-f", aliases={"--edgeFilter"}, usage="filter for known edge codons")
+    @Option(name="-f", aliases={"--stopFilter"}, usage="filter for known stop codons")
     private boolean edgeFilter;
 
     /** sensor type */
@@ -125,9 +125,9 @@ public class FastaProcessor implements ICommand {
             // is the codon itself (also metadata) and the remaining columns are sensors.
             System.out.println("Location\tCodon\t" + this.factory.sensor_headers());
             // Set up the codon filter.
-            CodonFilter filter = null;
+            CodonFilter filter = new CodonFilter("ATG", "GTG", "TTG", "TAA", "TAG", "TGA");
             if (this.edgeFilter)
-                filter = new CodonFilter("ATG", "GTG", "TTG", "TAA", "TAG", "TGA");
+                filter = new CodonFilter("TAA", "TAG", "TGA");
             // Now we loop through the sequences, producing output.
             for (File inFile : this.inFiles) {
                 if (debug) System.err.println("Processing file " + inFile + ".");
