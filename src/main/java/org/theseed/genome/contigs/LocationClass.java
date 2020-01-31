@@ -4,7 +4,7 @@
 package org.theseed.genome.contigs;
 
 import org.theseed.locations.Frame;
-import org.theseed.locations.LocationList;
+import org.theseed.locations.DiscreteLocationList;
 
 /**
  * This is the base class for location classifiers.  It computes the class of a location
@@ -22,7 +22,7 @@ public abstract class LocationClass {
     /** If TRUE, then minus-strand proteins are considered coding regions */
     boolean	negative;
     /** controlling location list */
-    LocationList contigLocs;
+    DiscreteLocationList contigLocs;
 
 
     /**
@@ -119,7 +119,7 @@ public abstract class LocationClass {
     }
 
     /** Store the controlling location list */
-    public void setLocs(LocationList contigLocs) {
+    public void setLocs(DiscreteLocationList contigLocs) {
         this.contigLocs = contigLocs;
     }
 
@@ -156,7 +156,7 @@ public abstract class LocationClass {
 
         @Override
         public String classOf(int pos) {
-            LocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
+            DiscreteLocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
             return type.toString();
         }
 
@@ -203,8 +203,8 @@ public abstract class LocationClass {
 
         @Override
         public String classOf(int pos) {
-            LocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
-            return (type == LocationList.Edge.STOP ? "stop" : "other");
+            DiscreteLocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
+            return (type == DiscreteLocationList.Edge.STOP ? "stop" : "other");
         }
 
     }
@@ -220,8 +220,8 @@ public abstract class LocationClass {
 
         @Override
         public String classOf(int pos) {
-            LocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
-            return (type == LocationList.Edge.START ? "start" : "other");
+            DiscreteLocationList.Edge type = this.contigLocs.isEdge(pos, this.negative);
+            return (type == DiscreteLocationList.Edge.START ? "start" : "other");
         }
 
     }

@@ -15,7 +15,7 @@ import org.kohsuke.args4j.Option;
 import org.theseed.counters.CountMap;
 import org.theseed.genome.Contig;
 import org.theseed.genome.Genome;
-import org.theseed.locations.LocationList;
+import org.theseed.locations.DiscreteLocationList;
 import org.theseed.utils.ICommand;
 
 /**
@@ -157,7 +157,7 @@ public class GenomeProcessor implements ICommand {
             // We use this to count the output classes.
             CountMap<String> classCounts = new CountMap<String>();
             // Get the genome's contig map.
-            Map<String, LocationList> codingMap = LocationList.createGenomeCodingMap(genome);
+            Map<String, DiscreteLocationList> codingMap = DiscreteLocationList.createGenomeCodingMap(genome);
             for (Contig contig : genome.getContigs()) {
                 if (debug) System.err.println("Processing contig " + contig.getId());
                 // Activate this contig's location list.

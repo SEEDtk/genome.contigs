@@ -13,7 +13,7 @@ import java.util.List;
 import org.theseed.genome.Contig;
 import org.theseed.locations.Frame;
 import org.theseed.locations.Location;
-import org.theseed.locations.LocationList;
+import org.theseed.locations.DiscreteLocationList;
 import org.theseed.sequence.Sequence;
 
 
@@ -149,7 +149,7 @@ public class AppTest
         assertThat("Incorrect normalize for P1, negative.", lsensor.normalize(Frame.P1), equalTo(Frame.P1));
         assertThat("Incorrect normalize for P0, negative.", lsensor.normalize(Frame.P0), equalTo(Frame.P0));
         assertThat("Incorrect normalize for XX, negative.", lsensor.normalize(Frame.XX), equalTo(Frame.XX));
-        LocationList newList = new LocationList("myContig");
+        DiscreteLocationList newList = new DiscreteLocationList("myContig");
         Location[] locs = { Location.create("myContig", "+", 10, 99, 102, 199),
                             Location.create("myContig", "-", 100, 400),
                             Location.create("myContig", "-", 500, 999),

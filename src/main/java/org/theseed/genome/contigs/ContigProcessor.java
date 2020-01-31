@@ -18,7 +18,7 @@ import org.theseed.genome.Contig;
 import org.theseed.genome.Genome;
 import org.theseed.genome.GenomeDirectory;
 import org.theseed.io.BalancedOutputStream;
-import org.theseed.locations.LocationList;
+import org.theseed.locations.DiscreteLocationList;
 import org.theseed.utils.ICommand;
 
 /**
@@ -214,7 +214,7 @@ public class ContigProcessor implements ICommand {
                 for (Genome genome : genomes) {
                     if (debug) System.err.println("Processing " + genome + ".");
                     // Create this genome's coding map.
-                    Map<String, LocationList> codingMap = LocationList.createGenomeCodingMap(genome);
+                    Map<String, DiscreteLocationList> codingMap = DiscreteLocationList.createGenomeCodingMap(genome);
                     for (Contig contig : genome.getContigs()) {
                         ProcessContig(contig, codingMap.get(contig.getId()), lsensor, filter);
                     }
@@ -243,7 +243,7 @@ public class ContigProcessor implements ICommand {
      * @param lsensor 	classification scheme for locations
      * @param filter	optional codon filter
      */
-    private void ProcessContig(Contig contig, LocationList framer, LocationClass lsensor, CodonFilter filter) {
+    private void ProcessContig(Contig contig, DiscreteLocationList framer, LocationClass lsensor, CodonFilter filter) {
         // Activate the contig.
         lsensor.setLocs(framer);
         // Run through the contig in chunks, choosing random locations to output.
