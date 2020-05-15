@@ -216,7 +216,7 @@ public class ContigProcessor implements ICommand {
                     // Create this genome's coding map.
                     Map<String, DiscreteLocationList> codingMap = DiscreteLocationList.createGenomeCodingMap(genome);
                     for (Contig contig : genome.getContigs()) {
-                        ProcessContig(contig, codingMap.get(contig.getId()), lsensor, filter);
+                        processContig(contig, codingMap.get(contig.getId()), lsensor, filter);
                     }
                 }
             }
@@ -243,7 +243,7 @@ public class ContigProcessor implements ICommand {
      * @param lsensor 	classification scheme for locations
      * @param filter	optional codon filter
      */
-    private void ProcessContig(Contig contig, DiscreteLocationList framer, LocationClass lsensor, CodonFilter filter) {
+    private void processContig(Contig contig, DiscreteLocationList framer, LocationClass lsensor, CodonFilter filter) {
         // Activate the contig.
         lsensor.setLocs(framer);
         // Run through the contig in chunks, choosing random locations to output.
